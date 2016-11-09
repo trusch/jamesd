@@ -1,0 +1,11 @@
+endpoint: localhost:2761
+cert: pki/pki/issued/jamesc.crt
+key: pki/pki/private/jamesc.key
+ca: pki/pki/ca.crt
+installRoot: ./install
+architecture: armv7l
+services:
+  - name: susi-core
+    version: 0.2.1
+  - name: susi-duktape
+    version: 0.2.1
