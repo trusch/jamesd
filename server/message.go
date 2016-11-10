@@ -14,6 +14,7 @@ const (
 	//server side
 	PONG
 	INSTALL
+	UNINSTALL
 	GET_STATE
 	VPN_START
 	VPN_STOP

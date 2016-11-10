@@ -13,12 +13,11 @@ var certFile = flag.String("cert", "jamesc.crt", "cert to use")
 var caFile = flag.String("ca", "ca.crt", "CA to use")
 var installRoot = flag.String("install-root", "/", "CA to use")
 var stateFile = flag.String("state-file", "/var/lib/jamesc/state.gob", "statefile location")
-var arch = flag.String("arch", "armv7l", "host architecture")
 
 func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.Parse()
-	cli, err := client.New(*addr, *certFile, *keyFile, *caFile, *installRoot, *stateFile, *arch)
+	cli, err := client.New(*addr, *certFile, *keyFile, *caFile, *installRoot, *stateFile)
 	if err != nil {
 		log.Fatal(err)
 	}

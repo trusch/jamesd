@@ -33,6 +33,7 @@ func NewConnection(conn net.Conn, server *Server) (*Connection, error) {
 	}
 	connection.ID = id
 	go connection.readMessages()
+	log.Printf("got new connection: %v", id)
 	return connection, nil
 }
 

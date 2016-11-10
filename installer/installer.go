@@ -26,17 +26,17 @@ func Install(archive *tar.Reader, installRoot, preInstallScript, postInstallScri
 	return nil
 }
 
-func Uninstall(archive *tar.Reader, installRoot, preUninstallScript, postUninstallScript string) error {
-	if preUninstallScript != "" {
-		if err := execScript(preUninstallScript); err != nil {
+func Uninstall(archive *tar.Reader, installRoot, preRemoveScript, postRemoveScript string) error {
+	if preRemoveScript != "" {
+		if err := execScript(preRemoveScript); err != nil {
 			return err
 		}
 	}
 	if err := uninstallTar(archive, installRoot); err != nil {
 		return err
 	}
-	if postUninstallScript != "" {
-		if err := execScript(postUninstallScript); err != nil {
+	if postRemoveScript != "" {
+		if err := execScript(postRemoveScript); err != nil {
 			return err
 		}
 	}

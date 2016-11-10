@@ -37,7 +37,7 @@ func (cli *Client) Read() (*server.Message, error) {
 	return msg, err
 }
 
-func New(addr, certFile, keyFile, caFile, installRoot, systemStateFile, arch string) (*Client, error) {
+func New(addr, certFile, keyFile, caFile, installRoot, systemStateFile string) (*Client, error) {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,6 @@ func New(addr, certFile, keyFile, caFile, installRoot, systemStateFile, arch str
 	if err != nil {
 		log.Print("failed loading systemstate from disk")
 	}
-	state.Arch = arch
 	state.Save(systemStateFile)
 
 	cli := &Client{
@@ -112,9 +111,50 @@ func (cli *Client) handleIncomingMessage(msg *server.Message) {
 				log.Print("Error: ", err)
 				break
 			}
-			cli.state.SetAppVersion(pack.Name, pack.Version)
-			log.Printf("installed %v:%v", pack.Name, pack.Version)
-			cli.state.Save(cli.stateFile)
+			cli.state.MarkAppInstalled(&systemstate.AppInfo{Name: pack.Name, Tags: pack.Tags})
+			log.Printf("installed %v:%v", pack.Name, pack.Tags)
+			err = cli.state.Save(cli.stateFile)
+			if err != nil {
+				log.Print("failed writing statefile: ", err)
+			}
+			reply := &server.Message{
+				Type:  server.STATE,
+				State: cli.state,
+			}
+			err = cli.Send(reply)
+			if err != nil {
+				log.Print("Error: ", err)
+				break
+			}
+		}
+	case server.UNINSTALL:
+		{
+			pack := msg.Packet
+			tar, err := pack.GetTarReader()
+			if err != nil {
+				log.Print("Error: ", err)
+				break
+			}
+			err = installer.Uninstall(tar, cli.installRoot, pack.PreInstallScript, pack.PostInstallScript)
+			if err != nil {
+				log.Print("Error: ", err)
+				break
+			}
+			cli.state.MarkAppUninstalled(&systemstate.AppInfo{Name: pack.Name, Tags: pack.Tags})
+			log.Printf("uninstalled %v:%v", pack.Name, pack.Tags)
+			err = cli.state.Save(cli.stateFile)
+			if err != nil {
+				log.Print("failed writing statefile: ", err)
+			}
+			msg := &server.Message{
+				Type:  server.STATE,
+				State: cli.state,
+			}
+			err = cli.Send(msg)
+			if err != nil {
+				log.Print("Error: ", err)
+				break
+			}
 		}
 	case server.GET_STATE:
 		{

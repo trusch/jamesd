@@ -31,11 +31,24 @@ func (server *Server) handleNewState(currentState *systemstate.SystemState) {
 		log.Print("Error: ", err)
 		return
 	}
+	err = server.handleUninstall(currentState, desiredState)
+	if err != nil {
+		log.Printf("uninstall failed: %v", err)
+		return
+	}
+	err = server.handleInstall(currentState, desiredState)
+	if err != nil {
+		log.Printf("install failed: %v", err)
+		return
+	}
+}
+
+func (server *Server) handleInstall(currentState, desiredState *systemstate.SystemState) error {
 	neededApps := make([]*systemstate.AppInfo, 0)
 	for _, desiredApp := range desiredState.Apps {
 		isNeeded := true
 		for _, currentApp := range currentState.Apps {
-			if currentApp.Name == desiredApp.Name && currentApp.Version == desiredApp.Version {
+			if currentApp.Equals(desiredApp) {
 				isNeeded = false
 				break
 			}
@@ -45,10 +58,11 @@ func (server *Server) handleNewState(currentState *systemstate.SystemState) {
 		}
 	}
 	for _, appInfo := range neededApps {
-		pack, e := server.db.GetPacket(appInfo.Name, currentState.Arch, appInfo.Version)
+		log.Printf("install %v %v on %v", appInfo.Name, appInfo.Tags, currentState.ID)
+		pack, e := server.db.GetPacket(appInfo.Name, appInfo.Tags)
 		if e != nil {
-			log.Print("Error: ", e)
-			return
+			log.Printf("can not locate %v %v: %v", appInfo.Name, appInfo.Tags, e)
+			return e
 		}
 		msg := &Message{
 			Type:   INSTALL,
@@ -57,9 +71,44 @@ func (server *Server) handleNewState(currentState *systemstate.SystemState) {
 		e = server.connections[currentState.ID].Send(msg)
 		if e != nil {
 			log.Print("Error: ", e)
-			return
+			return e
 		}
 	}
+	return nil
+}
+
+func (server *Server) handleUninstall(currentState, desiredState *systemstate.SystemState) error {
+	unneededApps := make([]*systemstate.AppInfo, 0)
+	for _, currentApp := range currentState.Apps {
+		needToBeDeleted := true
+		for _, desiredApp := range desiredState.Apps {
+			if currentApp.Equals(desiredApp) {
+				needToBeDeleted = false
+				break
+			}
+		}
+		if needToBeDeleted {
+			unneededApps = append(unneededApps, currentApp)
+		}
+	}
+	for _, appInfo := range unneededApps {
+		log.Printf("uninstall %v %v from %v", appInfo.Name, appInfo.Tags, currentState.ID)
+		pack, e := server.db.GetPacket(appInfo.Name, appInfo.Tags)
+		if e != nil {
+			log.Printf("can not locate %v %v: %v", appInfo.Name, appInfo.Tags, e)
+			return e
+		}
+		msg := &Message{
+			Type:   UNINSTALL,
+			Packet: pack,
+		}
+		e = server.connections[currentState.ID].Send(msg)
+		if e != nil {
+			log.Print("Error: ", e)
+			return e
+		}
+	}
+	return nil
 }
 
 func (server *Server) handleConn(conn net.Conn) {

@@ -14,12 +14,13 @@ import (
 
 type Packet struct {
 	Name              string
-	Arch              string
-	Version           string
+	Tags              []string
 	Data              []byte
 	Compression       CompressionType
 	PreInstallScript  string
 	PostInstallScript string
+	PreRemoveScript   string
+	PostRemoveScript  string
 }
 
 type CompressionType int
@@ -31,19 +32,20 @@ const (
 	LZMA
 )
 
-func New(name, arch, version string, data io.Reader, compression CompressionType, preInstallScript, postInstallScript string) (*Packet, error) {
+func New(name string, tags []string, data io.Reader, compression CompressionType, preInstallScript, postInstallScript, preRemoveScript, postRemoveScript string) (*Packet, error) {
 	bs, err := ioutil.ReadAll(data)
 	if err != nil {
 		return nil, err
 	}
 	return &Packet{
 		Name:              name,
-		Arch:              arch,
-		Version:           version,
+		Tags:              tags,
 		Data:              bs,
 		Compression:       compression,
 		PreInstallScript:  preInstallScript,
 		PostInstallScript: postInstallScript,
+		PreRemoveScript:   preRemoveScript,
+		PostRemoveScript:  postRemoveScript,
 	}, nil
 }
 

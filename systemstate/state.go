@@ -8,14 +8,29 @@ import (
 // SystemState contains info about the system, including version of installed apps
 type SystemState struct {
 	ID   string
-	Arch string
 	Apps []*AppInfo
 }
 
 // AppInfo contains name and version of the installed app
 type AppInfo struct {
-	Name    string
-	Version string
+	Name string
+	Tags []string
+}
+
+func (info *AppInfo) Equals(other *AppInfo) bool {
+	if info.Name != other.Name || len(info.Tags) != len(other.Tags) {
+		return false
+	}
+	ownTags := make(map[string]bool)
+	for _, tag := range info.Tags {
+		ownTags[tag] = true
+	}
+	for _, tag := range other.Tags {
+		if _, ok := ownTags[tag]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func (state *SystemState) Load(path string) error {
@@ -28,7 +43,7 @@ func (state *SystemState) Load(path string) error {
 }
 
 func (state *SystemState) Save(path string) error {
-	f, err := os.Open(path)
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -41,12 +56,25 @@ func NewFromFile(path string) (*SystemState, error) {
 	return state, state.Load(path)
 }
 
-func (state *SystemState) SetAppVersion(name, version string) {
-	for _, appInfo := range state.Apps {
-		if appInfo.Name == name {
-			appInfo.Version = version
+func (state *SystemState) MarkAppInstalled(newApp *AppInfo) {
+	for _, info := range state.Apps {
+		if info.Equals(newApp) {
+			// app already marked
 			return
 		}
 	}
-	state.Apps = append(state.Apps, &AppInfo{name, version})
+	state.Apps = append(state.Apps, newApp)
+}
+
+func (state *SystemState) MarkAppUninstalled(app *AppInfo) {
+	id := -1
+	for idx, info := range state.Apps {
+		if info.Equals(app) {
+			id = idx
+			break
+		}
+	}
+	if id != -1 {
+		state.Apps = append(state.Apps[:id], state.Apps[id+1:]...)
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -15,26 +16,35 @@ import (
 )
 
 var dbUrl = flag.String("db", "localhost", "mongodb url")
-var command = flag.String("cmd", "", "one of add-packet, get-packet, list-packets, list-systems, get-state, get-desired-state, set-desired-state")
+var command = flag.String("cmd", "", "one of add-packet, get-packet, remove-packet, list-packets, list-systems, get-state, get-desired-state, set-desired-state")
 
-var packetName = flag.String("packet-name", "", "name of the packet")
-var packetDataFile = flag.String("packet-data", "", "compressed tar archive with packet data")
+var packetName = flag.String("name", "", "name of the packet")
+var tagList = flag.String("tags", "", "comma separated list of tags")
+var packetDataFile = flag.String("data", "", "compressed tar archive with packet data")
 var preInst = flag.String("preinst", "", "pre-install script")
 var postInst = flag.String("postinst", "", "post-install script")
-var version = flag.String("version", "", "packet version")
-var arch = flag.String("architecture", "", "packet architecture")
+var preRemove = flag.String("prerm", "", "pre-install script")
+var postRemove = flag.String("postrm", "", "post-install script")
 
 var id = flag.String("id", "", "system id")
 var file = flag.String("file", "", "system state file")
 
+var tags []string
+
+func init() {
+	flag.Parse()
+	if *tagList != "" {
+		tags = strings.Split(*tagList, ",")
+	}
+}
+
 func addPacket(db *db.DB) {
-	if *packetName == "" || *packetDataFile == "" || *version == "" || *arch == "" {
-		log.Fatal("specify --packet-name, --packet-data, --version and --architecture")
+	if *packetName == "" || *packetDataFile == "" {
+		log.Fatal("specify --name, --data")
 	}
 	pack := &packet.Packet{
-		Name:    *packetName,
-		Arch:    *arch,
-		Version: *version,
+		Name: *packetName,
+		Tags: tags,
 	}
 	switch filepath.Ext(*packetDataFile) {
 	case ".gz":
@@ -67,6 +77,20 @@ func addPacket(db *db.DB) {
 		}
 		pack.PostInstallScript = string(bs)
 	}
+	if *preRemove != "" {
+		bs, err = ioutil.ReadFile(*preRemove)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pack.PreRemoveScript = string(bs)
+	}
+	if *postRemove != "" {
+		bs, err = ioutil.ReadFile(*postRemove)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pack.PostRemoveScript = string(bs)
+	}
 	err = db.AddPacket(pack)
 	if err != nil {
 		log.Fatal(err)
@@ -74,34 +98,34 @@ func addPacket(db *db.DB) {
 }
 
 func getPacket(db *db.DB) {
-	if *packetName == "" || *version == "" || *arch == "" {
-		log.Fatal("specify --packet-name, --version and --architecture")
+	if *packetName == "" {
+		log.Fatal("specify --name")
 	}
-	pack, err := db.GetPacket(*packetName, *arch, *version)
+	pack, err := db.GetPacket(*packetName, tags)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("found packet %v_%v:%v data-size: %v preinst-size: %v postinst-size: %v\n",
-		*packetName, *arch, *version, len(pack.Data), len(pack.PreInstallScript), len(pack.PostInstallScript))
+	fmt.Printf("%v tags: %v data-size: %v preinst-size: %v postinst-size: %v prerm-size: %v postrm-size: %v\n",
+		pack.Name, pack.Tags, len(pack.Data), len(pack.PreInstallScript), len(pack.PostInstallScript), len(pack.PreRemoveScript), len(pack.PostRemoveScript))
 }
 
 func removePacket(db *db.DB) {
-	if *packetName == "" || *version == "" || *arch == "" {
-		log.Fatal("specify --packet-name, --version and --architecture")
+	if *packetName == "" {
+		log.Fatal("specify --name")
 	}
-	err := db.RemovePacket(*packetName, *arch, *version)
+	err := db.RemovePacket(*packetName, tags)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func listPackets(db *db.DB) {
-	packets, err := db.ListPackets()
+	packets, err := db.ListPackets(*packetName, tags)
 	if err != nil {
 		log.Fatal(err)
 	}
 	for _, packet := range packets {
-		fmt.Printf("%v\t%v\t%v\n", packet.Name, packet.Version, packet.Arch)
+		fmt.Printf("%v\t%v\n", packet.Name, packet.Tags)
 	}
 }
 
@@ -165,7 +189,6 @@ func setDesiredSystemState(db *db.DB) {
 }
 
 func main() {
-	flag.Parse()
 	db, err := db.New(*dbUrl)
 	if err != nil {
 		log.Fatal(err)
