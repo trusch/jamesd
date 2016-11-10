@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/trusch/jamesd"
+	"github.com/trusch/jamesd/server"
 )
 
 var addr = flag.String("addr", ":2761", "address to listen on")
@@ -16,6 +16,6 @@ var caFile = flag.String("ca", "ca.crt", "CA to use")
 func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.Parse()
-	server := jamesd.NewServer(*addr, *certFile, *keyFile, *caFile, *dbAddr)
+	server := server.New(*addr, *certFile, *keyFile, *caFile, *dbAddr)
 	server.Run()
 }
