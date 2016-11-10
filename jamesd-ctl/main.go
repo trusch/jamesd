@@ -15,7 +15,7 @@ import (
 )
 
 var dbUrl = flag.String("db", "localhost", "mongodb url")
-var command = flag.String("cmd", "", "one of add-packet, get-packet, list-packets")
+var command = flag.String("cmd", "", "one of add-packet, get-packet, list-packets, list-systems, get-state, get-desired-state, set-desired-state")
 
 var packetName = flag.String("packet-name", "", "name of the packet")
 var packetDataFile = flag.String("packet-data", "", "compressed tar archive with packet data")
@@ -83,6 +83,16 @@ func getPacket(db *db.DB) {
 	}
 	fmt.Printf("found packet %v_%v:%v data-size: %v preinst-size: %v postinst-size: %v\n",
 		*packetName, *arch, *version, len(pack.Data), len(pack.PreInstallScript), len(pack.PostInstallScript))
+}
+
+func removePacket(db *db.DB) {
+	if *packetName == "" || *version == "" || *arch == "" {
+		log.Fatal("specify --packet-name, --version and --architecture")
+	}
+	err := db.RemovePacket(*packetName, *arch, *version)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func listPackets(db *db.DB) {
@@ -169,6 +179,10 @@ func main() {
 		{
 			getPacket(db)
 		}
+	case "remove-packet":
+		{
+			removePacket(db)
+		}
 	case "list-packets":
 		{
 			listPackets(db)
@@ -177,15 +191,15 @@ func main() {
 		{
 			listSystems(db)
 		}
-	case "get-systemstate":
+	case "get-state":
 		{
 			getSystemState(db)
 		}
-	case "get-desired-systemstate":
+	case "get-desired-state":
 		{
 			getDesiredSystemState(db)
 		}
-	case "set-desired-systemstate":
+	case "set-desired-state":
 		{
 			setDesiredSystemState(db)
 		}
