@@ -32,7 +32,22 @@ func (server *Server) handleNewState(currentState *systemstate.SystemState) {
 		return
 	}
 	for _, app := range desiredState.Apps {
-		app.Tags = append(app.Tags, currentState.SystemTags...)
+		combinedTags := append(app.Tags, currentState.SystemTags...)
+		newTags := make([]string, 0, len(app.Tags))
+		for _, tag := range combinedTags {
+			isNeeded := true
+			for _, t := range newTags {
+				if t == tag {
+					isNeeded = false
+					break
+				}
+			}
+			if isNeeded {
+				newTags = append(newTags, tag)
+			}
+		}
+		app.Tags = newTags
+
 	}
 	err = server.handleUninstall(currentState, desiredState)
 	if err != nil {
