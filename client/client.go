@@ -118,15 +118,6 @@ func (cli *Client) handleIncomingMessage(msg *server.Message) {
 			if err != nil {
 				log.Print("failed writing statefile: ", err)
 			}
-			reply := &server.Message{
-				Type:  server.STATE,
-				State: cli.state,
-			}
-			err = cli.Send(reply)
-			if err != nil {
-				log.Print("Error: ", err)
-				break
-			}
 		}
 	case server.UNINSTALL:
 		{
@@ -146,15 +137,6 @@ func (cli *Client) handleIncomingMessage(msg *server.Message) {
 			err = cli.state.Save(cli.stateFile)
 			if err != nil {
 				log.Print("failed writing statefile: ", err)
-			}
-			msg := &server.Message{
-				Type:  server.STATE,
-				State: cli.state,
-			}
-			err = cli.Send(msg)
-			if err != nil {
-				log.Print("Error: ", err)
-				break
 			}
 		}
 	case server.GET_STATE:
