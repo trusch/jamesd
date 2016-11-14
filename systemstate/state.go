@@ -7,8 +7,9 @@ import (
 
 // SystemState contains info about the system, including version of installed apps
 type SystemState struct {
-	ID   string
-	Apps []*AppInfo
+	ID         string
+	SystemTags []string
+	Apps       []*AppInfo
 }
 
 // AppInfo contains name and version of the installed app
@@ -27,6 +28,25 @@ func (info *AppInfo) Equals(other *AppInfo) bool {
 	}
 	for _, tag := range other.Tags {
 		if _, ok := ownTags[tag]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+func (info *AppInfo) IsSuperSetOf(other *AppInfo) bool {
+	if info.Name != other.Name {
+		return false
+	}
+	for _, tag := range info.Tags {
+		foundTag := false
+		for _, otherTag := range other.Tags {
+			if tag == otherTag {
+				foundTag = true
+				break
+			}
+		}
+		if !foundTag {
 			return false
 		}
 	}

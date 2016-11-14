@@ -37,7 +37,7 @@ func (cli *Client) Read() (*server.Message, error) {
 	return msg, err
 }
 
-func New(addr, certFile, keyFile, caFile, installRoot, systemStateFile string) (*Client, error) {
+func New(addr, certFile, keyFile, caFile, installRoot, systemStateFile string, systemTags []string) (*Client, error) {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
 		return nil, err
@@ -66,6 +66,7 @@ func New(addr, certFile, keyFile, caFile, installRoot, systemStateFile string) (
 		log.Print("failed loading systemstate from disk")
 	}
 	state.Save(systemStateFile)
+	state.SystemTags = systemTags
 
 	cli := &Client{
 		conn:        conn,

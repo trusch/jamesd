@@ -31,6 +31,9 @@ func (server *Server) handleNewState(currentState *systemstate.SystemState) {
 		log.Print("Error: ", err)
 		return
 	}
+	for _, app := range desiredState.Apps {
+		app.Tags = append(app.Tags, currentState.SystemTags...)
+	}
 	err = server.handleUninstall(currentState, desiredState)
 	if err != nil {
 		log.Printf("uninstall failed: %v", err)
@@ -48,7 +51,7 @@ func (server *Server) handleInstall(currentState, desiredState *systemstate.Syst
 	for _, desiredApp := range desiredState.Apps {
 		isNeeded := true
 		for _, currentApp := range currentState.Apps {
-			if currentApp.Equals(desiredApp) {
+			if desiredApp.IsSuperSetOf(currentApp) {
 				isNeeded = false
 				break
 			}
@@ -82,7 +85,7 @@ func (server *Server) handleUninstall(currentState, desiredState *systemstate.Sy
 	for _, currentApp := range currentState.Apps {
 		needToBeDeleted := true
 		for _, desiredApp := range desiredState.Apps {
-			if currentApp.Equals(desiredApp) {
+			if desiredApp.IsSuperSetOf(currentApp) {
 				needToBeDeleted = false
 				break
 			}
