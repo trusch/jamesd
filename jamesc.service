@@ -1,0 +1,10 @@
+[Unit]
+Description=Jamesc service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/jamesc -addr my-jamesd-server:2761 --system-tags system-tag-1,system-tag-2 -ca /etc/jamesc/ca.crt -cert /etc/jamesc/cert.crt -key /etc/jamesc/key.key
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=jamesd package management server
+After=network.target
+
+[Service]
+Type=simple
+User=jamesd
+Group=jamesd
+ExecStart=/usr/local/bin/jamesd -ca /etc/jamesd/ca.crt -cert /etc/jamesd/jamesd.crt -key /etc/jamesd/jamesd.key
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
