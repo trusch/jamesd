@@ -152,3 +152,19 @@ first 'go get' it like described above. Then execute the following:
     github.com/trusch/jamesd/jamesc
 ```
 Now you can copy the binary (`$GOPATH/bin/linux_arm/jamesc`) to any (you know what I mean) arm device.
+
+# Key management
+You need a proper public key infrastructure to work with jamesd. You can use the openssl client binary to maintain a CA yourself, or you use a simple wrapper like [pkitool](github.com/trusch/vpntool/pki/pkitool)
+## Install pkitool
+```
+go get github.com/trusch/vpntool/pki/pkitool
+```
+## Setup pki
+```
+pkitool --init
+pkitool --add-server jamesd
+pkitool --add-client device-1
+pkitool --add-client device-2
+pkitool --add-client device-3
+```
+Keep the created directory safe! As you can see in the unit files, jamesd and jamesc need their own keys/certificates and the CA certificate. The specified names are the device id's reported by jamesd.
