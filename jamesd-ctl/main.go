@@ -17,7 +17,7 @@ package main
 import (
 	"log"
 
-	"github.com/trusch/jamesd/jamesd-ctl2/cmd"
+	"github.com/trusch/jamesd/jamesd-ctl/cmd"
 )
 
 func main() {

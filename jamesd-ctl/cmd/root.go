@@ -23,7 +23,7 @@ import (
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "jamesd-ctl2",
+	Use:   "jamesd-ctl",
 	Short: "A command line app to interact with jamesd.",
 	Long: `A command line app to interact with jamesd.
 
