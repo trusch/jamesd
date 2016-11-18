@@ -12,15 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
 
 import (
-	"log"
+	"fmt"
+	"os"
 
-	"github.com/trusch/jamesd/jamesd-ctl2/cmd"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	log.SetFlags(log.Lshortfile)
-	cmd.Execute()
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
+	Use:   "jamesd-ctl2",
+	Short: "A command line app to interact with jamesd.",
+	Long: `A command line app to interact with jamesd.
+
+	You can view/manipulate packets and the state of systems connected to jamesd.
+	`,
+}
+
+func Execute() {
+	if err := RootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(-1)
+	}
+}
+
+func init() {
+	RootCmd.PersistentFlags().String("db", "localhost", "database URI")
 }

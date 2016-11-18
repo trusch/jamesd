@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
 
-import (
-	"log"
+import "github.com/spf13/cobra"
 
-	"github.com/trusch/jamesd/jamesd-ctl2/cmd"
-)
+// packetsCmd represents the packets command
+var packetsCmd = &cobra.Command{
+	Use:   "packets",
+	Short: "packet related tasks",
+	Long:  `This allows you to interact with jamesd's packet repository.`,
+}
 
-func main() {
-	log.SetFlags(log.Lshortfile)
-	cmd.Execute()
+func init() {
+	RootCmd.AddCommand(packetsCmd)
+	packetsCmd.PersistentFlags().StringP("name", "n", "", "packet name")
+	packetsCmd.PersistentFlags().StringSliceP("tags", "t", []string{}, "packet tag list")
 }

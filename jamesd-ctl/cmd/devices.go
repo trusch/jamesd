@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
 
-import (
-	"log"
+import "github.com/spf13/cobra"
 
-	"github.com/trusch/jamesd/jamesd-ctl2/cmd"
-)
+// devicesCmd represents the devices command
+var devicesCmd = &cobra.Command{
+	Use:     "devices",
+	Aliases: []string{"systems", "machines"},
+	Short:   "device related tasks",
+	Long:    `This allows you to inspect and interact with the connected devices packet state`,
+}
 
-func main() {
-	log.SetFlags(log.Lshortfile)
-	cmd.Execute()
+func init() {
+	RootCmd.AddCommand(devicesCmd)
+	devicesCmd.PersistentFlags().StringP("name", "n", "", "name of the device to operate on")
 }
