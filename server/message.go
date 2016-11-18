@@ -1,9 +1,6 @@
 package server
 
-import (
-	"github.com/trusch/jamesd/packet"
-	"github.com/trusch/jamesd/systemstate"
-)
+import "github.com/trusch/jamesd/systemstate"
 
 type MessageType int
 
@@ -23,5 +20,5 @@ const (
 type Message struct {
 	Type   MessageType
 	State  *systemstate.SystemState
-	Packet *packet.Packet
+	Packet []byte
 }

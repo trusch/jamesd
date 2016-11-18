@@ -6,41 +6,41 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/trusch/jamesd/packet"
 )
 
-func Install(archive *tar.Reader, installRoot, preInstallScript, postInstallScript string) error {
-	if preInstallScript != "" {
-		if err := execScript(preInstallScript); err != nil {
+func Install(pack *packet.Packet, installRoot string) error {
+	if pack.ControlInfo.PreInst != "" {
+		if err := execScript(pack.ControlInfo.PreInst); err != nil {
 			return err
 		}
 	}
-	if err := installTar(archive, installRoot); err != nil {
+	if err := installTar(pack.Data.GetReader(), installRoot); err != nil {
 		return err
 	}
-	if postInstallScript != "" {
-		if err := execScript(postInstallScript); err != nil {
+	if pack.ControlInfo.PostInst != "" {
+		if err := execScript(pack.ControlInfo.PostInst); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
-func Uninstall(archive *tar.Reader, installRoot, preRemoveScript, postRemoveScript string) error {
-	if preRemoveScript != "" {
-		if err := execScript(preRemoveScript); err != nil {
+func Uninstall(pack *packet.Packet, installRoot string) error {
+	if pack.ControlInfo.PreRm != "" {
+		if err := execScript(pack.ControlInfo.PreRm); err != nil {
 			return err
 		}
 	}
-	if err := uninstallTar(archive, installRoot); err != nil {
+	if err := uninstallTar(pack.Data.GetReader(), installRoot); err != nil {
 		return err
 	}
-	if postRemoveScript != "" {
-		if err := execScript(postRemoveScript); err != nil {
+	if pack.ControlInfo.PostRm != "" {
+		if err := execScript(pack.ControlInfo.PostRm); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 

@@ -37,13 +37,13 @@ func (db *DB) ListPackets(name string, tags []string) ([]*packet.Packet, error) 
 	c := db.session.DB("jamesd").C("packets")
 	query := bson.M{}
 	if name != "" {
-		query["name"] = name
+		query["controlinfo.name"] = name
 	}
 	if len(tags) > 0 {
-		query["tags"] = bson.M{"$all": tags}
+		query["controlinfo.tags"] = bson.M{"$all": tags}
 	}
 	packets := make([]*packet.Packet, 0)
-	err := c.Find(query).Select(bson.M{"name": 1, "tags": 1}).Sort("name", "tags").All(&packets)
+	err := c.Find(query).Select(bson.M{"controlinfo.name": 1, "controlinfo.tags": 1}).Sort("name", "tags").All(&packets)
 	if err != nil {
 		return nil, err
 	}

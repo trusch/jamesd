@@ -82,9 +82,14 @@ func (server *Server) handleInstall(currentState, desiredState *systemstate.Syst
 			log.Printf("can not locate %v %v: %v", appInfo.Name, appInfo.Tags, e)
 			return e
 		}
+		packData, e := pack.ToData()
+		if e != nil {
+			log.Printf("can not marshall %v %v: %v", appInfo.Name, appInfo.Tags, e)
+			return e
+		}
 		msg := &Message{
 			Type:   INSTALL,
-			Packet: pack,
+			Packet: packData,
 		}
 		e = server.connections[currentState.ID].Send(msg)
 		if e != nil {
@@ -116,9 +121,14 @@ func (server *Server) handleUninstall(currentState, desiredState *systemstate.Sy
 			log.Printf("can not locate %v %v: %v", appInfo.Name, appInfo.Tags, e)
 			return e
 		}
+		packData, e := pack.ToData()
+		if e != nil {
+			log.Printf("can not marshall %v %v: %v", appInfo.Name, appInfo.Tags, e)
+			return e
+		}
 		msg := &Message{
 			Type:   UNINSTALL,
-			Packet: pack,
+			Packet: packData,
 		}
 		e = server.connections[currentState.ID].Send(msg)
 		if e != nil {

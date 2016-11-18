@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -17,17 +16,11 @@ import (
 
 var dbUrl = flag.String("db", "localhost", "mongodb url")
 var command = flag.String("cmd", "", "one of add-packet, get-packet, remove-packet, list-packets, list-systems, get-state, get-desired-state, set-desired-state")
-
-var packetName = flag.String("name", "", "name of the packet")
-var tagList = flag.String("tags", "", "comma separated list of tags")
-var packetDataFile = flag.String("data", "", "compressed tar archive with packet data")
-var preInst = flag.String("preinst", "", "pre-install script")
-var postInst = flag.String("postinst", "", "post-install script")
-var preRemove = flag.String("prerm", "", "pre-install script")
-var postRemove = flag.String("postrm", "", "post-install script")
-
+var packetFile = flag.String("packet", "", "packet file to upload")
 var id = flag.String("id", "", "system id")
 var file = flag.String("file", "", "system state file")
+var packetName = flag.String("name", "", "packet name")
+var tagList = flag.String("tags", "", "tags of packet")
 
 var tags []string
 
@@ -39,57 +32,16 @@ func init() {
 }
 
 func addPacket(db *db.DB) {
-	if *packetName == "" || *packetDataFile == "" {
-		log.Fatal("specify --name, --data")
+	if *packetFile == "" {
+		log.Fatal("specify --packet")
 	}
-	pack := &packet.Packet{
-		Name: *packetName,
-		Tags: tags,
-	}
-	switch filepath.Ext(*packetDataFile) {
-	case ".gz":
-		pack.Compression = packet.GZIP
-	case ".bzip2":
-		pack.Compression = packet.BZIP2
-	case ".bz2":
-		pack.Compression = packet.BZIP2
-	case ".lzma":
-		pack.Compression = packet.LZMA
-	case ".xz":
-		pack.Compression = packet.LZMA
-	}
-	bs, err := ioutil.ReadFile(*packetDataFile)
+	bs, err := ioutil.ReadFile(*packetFile)
 	if err != nil {
 		log.Fatal(err)
 	}
-	pack.Data = bs
-	if *preInst != "" {
-		bs, err = ioutil.ReadFile(*preInst)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pack.PreInstallScript = string(bs)
-	}
-	if *postInst != "" {
-		bs, err = ioutil.ReadFile(*postInst)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pack.PostInstallScript = string(bs)
-	}
-	if *preRemove != "" {
-		bs, err = ioutil.ReadFile(*preRemove)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pack.PreRemoveScript = string(bs)
-	}
-	if *postRemove != "" {
-		bs, err = ioutil.ReadFile(*postRemove)
-		if err != nil {
-			log.Fatal(err)
-		}
-		pack.PostRemoveScript = string(bs)
+	pack, err := packet.NewFromData(bs)
+	if err != nil {
+		log.Fatal(err)
 	}
 	err = db.AddPacket(pack)
 	if err != nil {
@@ -105,8 +57,7 @@ func getPacket(db *db.DB) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%v tags: %v data-size: %v preinst-size: %v postinst-size: %v prerm-size: %v postrm-size: %v\n",
-		pack.Name, pack.Tags, len(pack.Data), len(pack.PreInstallScript), len(pack.PostInstallScript), len(pack.PreRemoveScript), len(pack.PostRemoveScript))
+	fmt.Printf("name: %v tags: %v\n", pack.Name, pack.Tags)
 }
 
 func removePacket(db *db.DB) {

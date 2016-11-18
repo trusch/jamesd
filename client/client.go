@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/trusch/jamesd/installer"
+	"github.com/trusch/jamesd/packet"
 	"github.com/trusch/jamesd/server"
 	"github.com/trusch/jamesd/systemstate"
 )
@@ -101,13 +102,12 @@ func (cli *Client) handleIncomingMessage(msg *server.Message) {
 		}
 	case server.INSTALL:
 		{
-			pack := msg.Packet
-			tar, err := pack.GetTarReader()
+			pack, err := packet.NewFromData(msg.Packet)
 			if err != nil {
 				log.Print("Error: ", err)
 				break
 			}
-			err = installer.Install(tar, cli.installRoot, pack.PreInstallScript, pack.PostInstallScript)
+			err = installer.Install(pack, cli.installRoot)
 			if err != nil {
 				log.Print("Error: ", err)
 				break
@@ -121,13 +121,12 @@ func (cli *Client) handleIncomingMessage(msg *server.Message) {
 		}
 	case server.UNINSTALL:
 		{
-			pack := msg.Packet
-			tar, err := pack.GetTarReader()
+			pack, err := packet.NewFromData(msg.Packet)
 			if err != nil {
 				log.Print("Error: ", err)
 				break
 			}
-			err = installer.Uninstall(tar, cli.installRoot, pack.PreInstallScript, pack.PostInstallScript)
+			err = installer.Uninstall(pack, cli.installRoot)
 			if err != nil {
 				log.Print("Error: ", err)
 				break
