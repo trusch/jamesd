@@ -15,43 +15,33 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
 )
 
-// getSatisfyingPacketsCmd represents the getSatisfyingPackets command
-var getSatisfyingPacketsCmd = &cobra.Command{
-	Use:   "satisfying",
-	Short: "List packets which satisfies given name and tags",
-	Long: `List packets which satisfies given name and tags.
-
-	A packet satifies a request if all its tags are in the request tag list.
-	For example the packet {name: foo, tags: [a]} satisfies the request {name: foo, tags: [a,b,c]}`,
+// removeSpecCmd represents the removeSpec command
+var removeSpecCmd = &cobra.Command{
+	Use:   "remove",
+	Short: "remove a spec",
+	Long:  `remove a spec by name`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
 		name, _ := cmd.Flags().GetString("name")
-		tags, _ := cmd.Flags().GetStringSlice("tags")
 		db, err := db.New(dbUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
-		listSatisfyingPackets(db, name, tags)
+		err = db.RemoveSpec(name)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
-func listSatisfyingPackets(db *db.DB, packetName string, tags []string) {
-	packets, err := db.GetMatchingPackets(packetName, tags)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, packet := range packets {
-		fmt.Printf("%v\t%v\n", packet.Name, packet.Tags)
-	}
-}
-
 func init() {
-	packetsCmd.AddCommand(getSatisfyingPacketsCmd)
+	specsCmd.AddCommand(removeSpecCmd)
+	removeSpecCmd.Flags().StringP("name", "n", "", "spec name")
+
 }

@@ -15,43 +15,37 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
+	"github.com/trusch/jamesd/spec"
 )
 
-// getSatisfyingPacketsCmd represents the getSatisfyingPackets command
-var getSatisfyingPacketsCmd = &cobra.Command{
-	Use:   "satisfying",
-	Short: "List packets which satisfies given name and tags",
-	Long: `List packets which satisfies given name and tags.
-
-	A packet satifies a request if all its tags are in the request tag list.
-	For example the packet {name: foo, tags: [a]} satisfies the request {name: foo, tags: [a,b,c]}`,
+// addSpecCmd represents the addSpec command
+var addSpecCmd = &cobra.Command{
+	Use:   "add",
+	Short: "add a spec to the database",
+	Long:  `Add a spec to the database to describe a relation from tags to packets.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
-		name, _ := cmd.Flags().GetString("name")
-		tags, _ := cmd.Flags().GetStringSlice("tags")
+		file, _ := cmd.Flags().GetString("file")
 		db, err := db.New(dbUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
-		listSatisfyingPackets(db, name, tags)
+		s, err := spec.NewFromFile(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+		err = db.UpsertSpec(s)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
-func listSatisfyingPackets(db *db.DB, packetName string, tags []string) {
-	packets, err := db.GetMatchingPackets(packetName, tags)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, packet := range packets {
-		fmt.Printf("%v\t%v\n", packet.Name, packet.Tags)
-	}
-}
-
 func init() {
-	packetsCmd.AddCommand(getSatisfyingPacketsCmd)
+	specsCmd.AddCommand(addSpecCmd)
+	addSpecCmd.Flags().StringP("file", "f", "spec.yaml", "spec file to load")
 }

@@ -18,18 +18,17 @@ import (
 	"fmt"
 	"log"
 
+	"gopkg.in/yaml.v2"
+
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
 )
 
-// getSatisfyingPacketsCmd represents the getSatisfyingPackets command
-var getSatisfyingPacketsCmd = &cobra.Command{
-	Use:   "satisfying",
-	Short: "List packets which satisfies given name and tags",
-	Long: `List packets which satisfies given name and tags.
-
-	A packet satifies a request if all its tags are in the request tag list.
-	For example the packet {name: foo, tags: [a]} satisfies the request {name: foo, tags: [a,b,c]}`,
+// matchingSpecCmd represents the matchingSpec command
+var matchingSpecCmd = &cobra.Command{
+	Use:   "matching",
+	Short: "get the combined spec matching your given target",
+	Long:  `Get the combined spec matching your given target`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
 		name, _ := cmd.Flags().GetString("name")
@@ -38,20 +37,20 @@ var getSatisfyingPacketsCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		listSatisfyingPackets(db, name, tags)
+		s, err := db.GetSpecForTarget(name, tags)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bs, err := yaml.Marshal(s)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Print(string(bs))
 	},
 }
 
-func listSatisfyingPackets(db *db.DB, packetName string, tags []string) {
-	packets, err := db.GetMatchingPackets(packetName, tags)
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, packet := range packets {
-		fmt.Printf("%v\t%v\n", packet.Name, packet.Tags)
-	}
-}
-
 func init() {
-	packetsCmd.AddCommand(getSatisfyingPacketsCmd)
+	specsCmd.AddCommand(matchingSpecCmd)
+	matchingSpecCmd.Flags().StringP("name", "n", "", "spec target name")
+	matchingSpecCmd.Flags().StringSliceP("tags", "t", []string{}, "spec target tag list")
 }
