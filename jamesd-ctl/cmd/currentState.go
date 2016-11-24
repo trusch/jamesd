@@ -26,7 +26,7 @@ import (
 
 // currentStateCmd represents the currentState command
 var currentStateCmd = &cobra.Command{
-	Use:   "get-state",
+	Use:   "get",
 	Short: "returns the current state of the specified device",
 	Long:  `This returns the current state if the specified device.`,
 	Run: func(cmd *cobra.Command, args []string) {

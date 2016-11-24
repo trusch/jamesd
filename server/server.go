@@ -8,6 +8,7 @@ import (
 	"net"
 
 	"github.com/trusch/jamesd/db"
+	"github.com/trusch/jamesd/spec"
 	"github.com/trusch/jamesd/systemstate"
 )
 
@@ -26,12 +27,11 @@ func (server *Server) handleNewState(currentState *systemstate.SystemState) {
 	if err != nil {
 		log.Print("Error: ", err)
 	}
-	desiredState, err := server.db.GetDesiredSystemState(currentState.ID)
+	spec, err := server.db.GetSpecForTarget(currentState.ID, currentState.SystemTags)
 	if err != nil {
-		log.Print("Error: ", err)
-		return
+		log.Print("Warning: ", err)
 	}
-	for _, app := range desiredState.Apps {
+	for _, app := range spec.Apps {
 		combinedTags := append(app.Tags, currentState.SystemTags...)
 		newTags := make([]string, 0, len(app.Tags))
 		for _, tag := range combinedTags {
@@ -47,26 +47,25 @@ func (server *Server) handleNewState(currentState *systemstate.SystemState) {
 			}
 		}
 		app.Tags = newTags
-
 	}
-	err = server.handleUninstall(currentState, desiredState)
+	err = server.handleUninstall(currentState, spec)
 	if err != nil {
 		log.Printf("uninstall failed: %v", err)
 		return
 	}
-	err = server.handleInstall(currentState, desiredState)
+	err = server.handleInstall(currentState, spec)
 	if err != nil {
 		log.Printf("install failed: %v", err)
 		return
 	}
 }
 
-func (server *Server) handleInstall(currentState, desiredState *systemstate.SystemState) error {
-	neededApps := make([]*systemstate.AppInfo, 0)
+func (server *Server) handleInstall(currentState *systemstate.SystemState, desiredState *spec.Spec) error {
+	neededApps := make([]*spec.Entity, 0)
 	for _, desiredApp := range desiredState.Apps {
 		isNeeded := true
 		for _, currentApp := range currentState.Apps {
-			if desiredApp.IsSuperSetOf(currentApp) {
+			if currentApp.Match(desiredApp) {
 				isNeeded = false
 				break
 			}
@@ -77,11 +76,12 @@ func (server *Server) handleInstall(currentState, desiredState *systemstate.Syst
 	}
 	for _, appInfo := range neededApps {
 		log.Printf("install %v %v on %v", appInfo.Name, appInfo.Tags, currentState.ID)
-		pack, e := server.db.GetPacket(appInfo.Name, appInfo.Tags)
-		if e != nil {
+		packets, e := server.db.GetMatchingPackets(appInfo.Name, appInfo.Tags)
+		if e != nil || len(packets) == 0 {
 			log.Printf("can not locate %v %v: %v", appInfo.Name, appInfo.Tags, e)
 			return e
 		}
+		pack := packets[0]
 		packData, e := pack.ToData()
 		if e != nil {
 			log.Printf("can not marshall %v %v: %v", appInfo.Name, appInfo.Tags, e)
@@ -100,12 +100,12 @@ func (server *Server) handleInstall(currentState, desiredState *systemstate.Syst
 	return nil
 }
 
-func (server *Server) handleUninstall(currentState, desiredState *systemstate.SystemState) error {
-	unneededApps := make([]*systemstate.AppInfo, 0)
+func (server *Server) handleUninstall(currentState *systemstate.SystemState, desiredState *spec.Spec) error {
+	unneededApps := make([]*spec.Entity, 0)
 	for _, currentApp := range currentState.Apps {
 		needToBeDeleted := true
 		for _, desiredApp := range desiredState.Apps {
-			if desiredApp.IsSuperSetOf(currentApp) {
+			if currentApp.Match(desiredApp) {
 				needToBeDeleted = false
 				break
 			}

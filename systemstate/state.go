@@ -3,54 +3,21 @@ package systemstate
 import (
 	"encoding/gob"
 	"os"
+
+	"github.com/trusch/jamesd/spec"
 )
 
 // SystemState contains info about the system, including version of installed apps
 type SystemState struct {
 	ID         string
 	SystemTags []string
-	Apps       []*AppInfo
+	Apps       []*spec.Entity
 }
 
 // AppInfo contains name and version of the installed app
 type AppInfo struct {
 	Name string
 	Tags []string
-}
-
-func (info *AppInfo) Equals(other *AppInfo) bool {
-	if info.Name != other.Name || len(info.Tags) != len(other.Tags) {
-		return false
-	}
-	ownTags := make(map[string]bool)
-	for _, tag := range info.Tags {
-		ownTags[tag] = true
-	}
-	for _, tag := range other.Tags {
-		if _, ok := ownTags[tag]; !ok {
-			return false
-		}
-	}
-	return true
-}
-
-func (info *AppInfo) IsSuperSetOf(other *AppInfo) bool {
-	if info.Name != other.Name {
-		return false
-	}
-	for _, tag := range info.Tags {
-		foundTag := false
-		for _, otherTag := range other.Tags {
-			if tag == otherTag {
-				foundTag = true
-				break
-			}
-		}
-		if !foundTag {
-			return false
-		}
-	}
-	return true
 }
 
 func (state *SystemState) Load(path string) error {
@@ -76,9 +43,9 @@ func NewFromFile(path string) (*SystemState, error) {
 	return state, state.Load(path)
 }
 
-func (state *SystemState) MarkAppInstalled(newApp *AppInfo) {
+func (state *SystemState) MarkAppInstalled(newApp *spec.Entity) {
 	for _, info := range state.Apps {
-		if info.Equals(newApp) {
+		if info.Match(newApp) && newApp.Match(info) {
 			// app already marked
 			return
 		}
@@ -86,10 +53,10 @@ func (state *SystemState) MarkAppInstalled(newApp *AppInfo) {
 	state.Apps = append(state.Apps, newApp)
 }
 
-func (state *SystemState) MarkAppUninstalled(app *AppInfo) {
+func (state *SystemState) MarkAppUninstalled(app *spec.Entity) {
 	id := -1
 	for idx, info := range state.Apps {
-		if info.Equals(app) {
+		if info.Match(app) && app.Match(info) {
 			id = idx
 			break
 		}

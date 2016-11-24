@@ -47,7 +47,7 @@ func (spec *Spec) Match(target *Entity) bool {
 
 // An Entity describes either a target or a packet
 type Entity struct {
-	Name string
+	Name string `yaml:"name,omitempty"`
 	Tags []string
 }
 

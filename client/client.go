@@ -13,6 +13,7 @@ import (
 	"github.com/trusch/jamesd/installer"
 	"github.com/trusch/jamesd/packet"
 	"github.com/trusch/jamesd/server"
+	"github.com/trusch/jamesd/spec"
 	"github.com/trusch/jamesd/systemstate"
 )
 
@@ -112,7 +113,7 @@ func (cli *Client) handleIncomingMessage(msg *server.Message) {
 				log.Print("Error: ", err)
 				break
 			}
-			cli.state.MarkAppInstalled(&systemstate.AppInfo{Name: pack.Name, Tags: pack.Tags})
+			cli.state.MarkAppInstalled(&spec.Entity{Name: pack.Name, Tags: pack.Tags})
 			log.Printf("installed %v:%v", pack.Name, pack.Tags)
 			err = cli.state.Save(cli.stateFile)
 			if err != nil {
@@ -131,7 +132,7 @@ func (cli *Client) handleIncomingMessage(msg *server.Message) {
 				log.Print("Error: ", err)
 				break
 			}
-			cli.state.MarkAppUninstalled(&systemstate.AppInfo{Name: pack.Name, Tags: pack.Tags})
+			cli.state.MarkAppUninstalled(&spec.Entity{Name: pack.Name, Tags: pack.Tags})
 			log.Printf("uninstalled %v:%v", pack.Name, pack.Tags)
 			err = cli.state.Save(cli.stateFile)
 			if err != nil {
