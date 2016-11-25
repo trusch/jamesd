@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
@@ -47,6 +48,7 @@ func listSatisfyingPackets(db *db.DB, packetName string, tags []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	sort.Sort(packets)
 	for _, packet := range packets {
 		fmt.Printf("%v\t%v\n", packet.Name, packet.Tags)
 	}

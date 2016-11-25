@@ -84,12 +84,11 @@ func New(addr, certFile, keyFile, caFile, installRoot, systemStateFile string, s
 	return cli, nil
 }
 
-func (cli *Client) Run() {
+func (cli *Client) Run() error {
 	for {
 		msg, err := cli.Read()
 		if err != nil {
-			log.Print("Error: ", err)
-			break
+			return err
 		}
 		cli.handleIncomingMessage(msg)
 	}

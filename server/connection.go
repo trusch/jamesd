@@ -10,7 +10,7 @@ import (
 )
 
 type Connection struct {
-	ID string
+	Name string
 
 	conn    net.Conn
 	mutex   sync.Mutex
@@ -31,7 +31,7 @@ func NewConnection(conn net.Conn, server *Server) (*Connection, error) {
 		conn.Close()
 		return nil, err
 	}
-	connection.ID = id
+	connection.Name = id
 	go connection.readMessages()
 	log.Printf("got new connection: %v", id)
 	return connection, nil
@@ -92,14 +92,14 @@ func (conn *Connection) handleIncomingMessage(msg *Message) {
 	case STATE:
 		{
 			state := msg.State
-			state.ID = conn.ID
+			state.Name = conn.Name
 			conn.server.handleNewState(state)
 		}
 	}
 }
 
 func (conn *Connection) handleDisconnect(err error) {
-	log.Printf("client %v disconnected (%v)", conn.ID, err)
-	conn.server.handleDisconnect(conn.ID)
+	log.Printf("client %v disconnected (%v)", conn.Name, err)
+	conn.server.handleDisconnect(conn.Name)
 	conn.conn.Close()
 }

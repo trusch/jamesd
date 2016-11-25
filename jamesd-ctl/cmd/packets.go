@@ -18,9 +18,10 @@ import "github.com/spf13/cobra"
 
 // packetsCmd represents the packets command
 var packetsCmd = &cobra.Command{
-	Use:   "packets",
-	Short: "packet related tasks",
-	Long:  `This allows you to interact with jamesd's packet repository.`,
+	Use:     "packets",
+	Aliases: []string{"packet"},
+	Short:   "packet related tasks",
+	Long:    `This allows you to interact with jamesd's packet repository.`,
 }
 
 func init() {

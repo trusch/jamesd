@@ -18,9 +18,10 @@ import "github.com/spf13/cobra"
 
 // specsCmd represents the specs command
 var specsCmd = &cobra.Command{
-	Use:   "specs",
-	Short: "specs related commands",
-	Long:  `With specs you can desribe what software should run on which systems.`,
+	Use:     "specs",
+	Aliases: []string{"spec"},
+	Short:   "specs related commands",
+	Long:    `With specs you can desribe what software should run on which systems.`,
 }
 
 func init() {

@@ -16,6 +16,16 @@ func (db *DB) UpsertSpec(specification *spec.Spec) error {
 	return nil
 }
 
+func (db *DB) GetSpec(name string) (*spec.Spec, error) {
+	p := &spec.Spec{}
+	c := db.session.DB("jamesd").C("specs")
+	err := c.Find(bson.M{"name": name}).One(p)
+	if err != nil {
+		return nil, err
+	}
+	return p, nil
+}
+
 func (db *DB) RemoveSpec(name string) error {
 	c := db.session.DB("jamesd").C("specs")
 	return c.Remove(bson.M{"name": name})

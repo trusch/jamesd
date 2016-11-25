@@ -3,14 +3,16 @@ package systemstate
 import (
 	"encoding/gob"
 	"os"
+	"time"
 
 	"github.com/trusch/jamesd/spec"
 )
 
 // SystemState contains info about the system, including version of installed apps
 type SystemState struct {
-	ID         string
+	Name         string
 	SystemTags []string
+	Timestamp  time.Time
 	Apps       []*spec.Entity
 }
 

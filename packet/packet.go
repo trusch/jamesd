@@ -28,6 +28,14 @@ type Scripts struct {
 	PostRm   string
 }
 
+type PacketList []*Packet
+
+func (a PacketList) Len() int      { return len(a) }
+func (a PacketList) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a PacketList) Less(i, j int) bool {
+	return len(a[i].ControlInfo.Tags) < len(a[j].ControlInfo.Tags)
+}
+
 func (info *ControlInfo) ToYaml() []byte {
 	d, _ := yaml.Marshal(info)
 	return d

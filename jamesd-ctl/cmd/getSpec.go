@@ -15,51 +15,51 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"fmt"
 	"log"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
-	"github.com/trusch/jamesd/systemstate"
-	"gopkg.in/yaml.v2"
 )
 
-// setDesiredStateCmd represents the setDesiredState command
-var setDesiredStateCmd = &cobra.Command{
-	Use:   "set-desired",
-	Short: "set the desired state of the specified device",
-	Long:  `This set the desired state of the specified device.`,
+// getSpecCmd represents the getSpec command
+var getSpecCmd = &cobra.Command{
+	Use:   "get",
+	Short: "get a single spec",
+	Long:  `Get returns a spec identified by name`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
-		file, _ := cmd.Flags().GetString("file")
+		name, _ := cmd.Flags().GetString("name")
 		db, err := db.New(dbUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
-		setDesiredSystemState(db, file)
+		if name == "" && len(args) > 0 {
+			name = args[0]
+		}
+		getSpec(db, name)
 	},
 }
 
-func setDesiredSystemState(db *db.DB, file string) {
-	if file == "" {
-		log.Fatal("specify --file")
+func getSpec(db *db.DB, name string) {
+	if name == "" {
+		log.Fatal("specify --name")
 	}
-	bs, err := ioutil.ReadFile(file)
+	spec, err := db.GetSpec(name)
 	if err != nil {
 		log.Fatal(err)
 	}
-	systemState := &systemstate.SystemState{}
-	err = yaml.Unmarshal(bs, systemState)
+	d, err := yaml.Marshal(spec)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.SaveDesiredSystemState(systemState)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Print(string(d))
 }
 
 func init() {
-	devicesCmd.AddCommand(setDesiredStateCmd)
-	setDesiredStateCmd.Flags().StringP("file", "f", "", "statefile to use")
+	specsCmd.AddCommand(getSpecCmd)
+
+	getSpecCmd.Flags().StringP("name", "n", "", "spec name")
 }

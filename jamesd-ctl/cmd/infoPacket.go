@@ -16,45 +16,41 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/spf13/cobra"
-	"github.com/trusch/jamesd/db"
+	"github.com/trusch/jamesd/packet"
 )
 
-// currentStateCmd represents the currentState command
-var currentStateCmd = &cobra.Command{
-	Use:   "get",
-	Short: "returns the current state of the specified device",
-	Long:  `This returns the current state if the specified device.`,
+// infoPacketCmd represents the infoPacket command
+var infoPacketCmd = &cobra.Command{
+	Use:   "info",
+	Short: "Get meta information from a .jpk file",
+	Long:  `This reports the name and the taglist for a given .jpk packet.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		dbUrl, _ := cmd.Flags().GetString("db")
-		name, _ := cmd.Flags().GetString("name")
-		db, err := db.New(dbUrl)
-		if err != nil {
-			log.Fatal(err)
+		file, _ := cmd.Flags().GetString("file")
+		if file == "" && len(args) > 0 {
+			file = args[0]
 		}
-		getSystemState(db, name)
+		info(file)
 	},
 }
 
-func getSystemState(db *db.DB, name string) {
-	if name == "" {
-		log.Fatal("specify --name")
-	}
-	state, err := db.GetCurrentSystemState(name)
+func info(file string) {
+	bs, err := ioutil.ReadFile(file)
 	if err != nil {
 		log.Fatal(err)
 	}
-	d, err := yaml.Marshal(state)
+	pack := &packet.Packet{}
+	err = pack.FromData(bs)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Print(string(d))
+	fmt.Print(string(pack.ControlInfo.ToYaml()))
 }
 
 func init() {
-	devicesCmd.AddCommand(currentStateCmd)
+	packetsCmd.AddCommand(infoPacketCmd)
+	infoPacketCmd.Flags().StringP("file", "f", "", "packet file to read")
 }

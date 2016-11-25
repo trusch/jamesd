@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/trusch/jamesd/client"
 )
@@ -28,9 +29,18 @@ func init() {
 func main() {
 	log.SetFlags(log.Lshortfile)
 	flag.Parse()
-	cli, err := client.New(*addr, *certFile, *keyFile, *caFile, *installRoot, *stateFile, tags)
-	if err != nil {
-		log.Fatal(err)
+	for {
+		cli, err := client.New(*addr, *certFile, *keyFile, *caFile, *installRoot, *stateFile, tags)
+		if err != nil {
+			log.Print("Error while establishing jamesd connection, retry in 5 seconds...")
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		log.Print("got jamesd connection, starting normal operation.")
+		err = cli.Run()
+		if err != nil {
+			log.Print("Error in jamesd connection, retry in 5 seconds...")
+			time.Sleep(5 * time.Second)
+		}
 	}
-	cli.Run()
 }

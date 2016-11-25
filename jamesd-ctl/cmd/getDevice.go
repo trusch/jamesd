@@ -17,47 +17,47 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
-	"text/tabwriter"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
 )
 
-// listSpecsCmd represents the listSpecs command
-var listSpecsCmd = &cobra.Command{
-	Use:   "list",
-	Short: "list your specs",
-	Long:  `list dumps specs matching your request`,
+// getDeviceCmd represents the currentState command
+var getDeviceCmd = &cobra.Command{
+	Use:   "get",
+	Short: "returns the current state of the specified device",
+	Long:  `This returns the current state if the specified device.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
 		name, _ := cmd.Flags().GetString("name")
-		tags, _ := cmd.Flags().GetStringSlice("tags")
 		db, err := db.New(dbUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
-		listSpecs(db, name, tags)
+		if name == "" && len(args) > 0 {
+			name = args[0]
+		}
+		getSystemState(db, name)
 	},
 }
 
-func listSpecs(db *db.DB, name string, tags []string) {
-	specs, err := db.GetSpecs(name, tags)
+func getSystemState(db *db.DB, name string) {
+	if name == "" {
+		log.Fatal("specify --name")
+	}
+	state, err := db.GetCurrentSystemState(name)
 	if err != nil {
 		log.Fatal(err)
 	}
-	const padding = 3
-	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, ' ', tabwriter.Debug)
-	fmt.Fprintln(w, "Name\t Target Tags\t Target Device")
-	for _, s := range specs {
-		fmt.Fprintf(w, "%v\t %v\t %v\n", s.Name, s.Target.Tags, s.Target.Name)
+	d, err := yaml.Marshal(state)
+	if err != nil {
+		log.Fatal(err)
 	}
-	w.Flush()
+	fmt.Print(string(d))
 }
 
 func init() {
-	specsCmd.AddCommand(listSpecsCmd)
-	listSpecsCmd.Flags().StringP("name", "n", "", "spec target name")
-	listSpecsCmd.Flags().StringSliceP("tags", "t", []string{}, "spec target tag list")
-
+	devicesCmd.AddCommand(getDeviceCmd)
 }

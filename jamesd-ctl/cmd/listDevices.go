@@ -17,6 +17,8 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
@@ -44,22 +46,15 @@ func listDevices(db *db.DB) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	const padding = 3
+	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, ' ', tabwriter.Debug)
+	fmt.Fprintln(w, "Name\t SystemTags\t Last seen")
 	for _, system := range systems {
-		fmt.Println(system)
+		fmt.Fprintf(w, "%v\t %v\t %v\n", system.Name, system.SystemTags, system.Timestamp)
 	}
+	w.Flush()
 }
 
 func init() {
 	devicesCmd.AddCommand(listDevicesCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// listDevicesCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// listDevicesCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }

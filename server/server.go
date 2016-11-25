@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+	"sort"
+	"time"
 
 	"github.com/trusch/jamesd/db"
 	"github.com/trusch/jamesd/spec"
@@ -23,11 +25,12 @@ func (server *Server) handleDisconnect(id string) {
 }
 
 func (server *Server) handleNewState(currentState *systemstate.SystemState) {
+	currentState.Timestamp = time.Now()
 	err := server.db.SaveCurrentSystemState(currentState)
 	if err != nil {
 		log.Print("Error: ", err)
 	}
-	spec, err := server.db.GetSpecForTarget(currentState.ID, currentState.SystemTags)
+	spec, err := server.db.GetSpecForTarget(currentState.Name, currentState.SystemTags)
 	if err != nil {
 		log.Print("Warning: ", err)
 	}
@@ -75,13 +78,14 @@ func (server *Server) handleInstall(currentState *systemstate.SystemState, desir
 		}
 	}
 	for _, appInfo := range neededApps {
-		log.Printf("install %v %v on %v", appInfo.Name, appInfo.Tags, currentState.ID)
 		packets, e := server.db.GetMatchingPackets(appInfo.Name, appInfo.Tags)
 		if e != nil || len(packets) == 0 {
 			log.Printf("can not locate %v %v: %v", appInfo.Name, appInfo.Tags, e)
 			return e
 		}
+		sort.Sort(packets)
 		pack := packets[0]
+		log.Printf("install %v %v on %v", pack.ControlInfo.Name, pack.ControlInfo.Tags, currentState.Name)
 		packData, e := pack.ToData()
 		if e != nil {
 			log.Printf("can not marshall %v %v: %v", appInfo.Name, appInfo.Tags, e)
@@ -91,7 +95,7 @@ func (server *Server) handleInstall(currentState *systemstate.SystemState, desir
 			Type:   INSTALL,
 			Packet: packData,
 		}
-		e = server.connections[currentState.ID].Send(msg)
+		e = server.connections[currentState.Name].Send(msg)
 		if e != nil {
 			log.Print("Error: ", e)
 			return e
@@ -115,7 +119,7 @@ func (server *Server) handleUninstall(currentState *systemstate.SystemState, des
 		}
 	}
 	for _, appInfo := range unneededApps {
-		log.Printf("uninstall %v %v from %v", appInfo.Name, appInfo.Tags, currentState.ID)
+		log.Printf("uninstall %v %v from %v", appInfo.Name, appInfo.Tags, currentState.Name)
 		pack, e := server.db.GetPacket(appInfo.Name, appInfo.Tags)
 		if e != nil {
 			log.Printf("can not locate %v %v: %v", appInfo.Name, appInfo.Tags, e)
@@ -130,7 +134,7 @@ func (server *Server) handleUninstall(currentState *systemstate.SystemState, des
 			Type:   UNINSTALL,
 			Packet: packData,
 		}
-		e = server.connections[currentState.ID].Send(msg)
+		e = server.connections[currentState.Name].Send(msg)
 		if e != nil {
 			log.Print("Error: ", e)
 			return e
@@ -147,7 +151,7 @@ func (server *Server) handleConn(conn net.Conn) {
 	}
 	msg := &Message{Type: GET_STATE}
 	connection.Send(msg)
-	server.connections[connection.ID] = connection
+	server.connections[connection.Name] = connection
 }
 
 func (server *Server) Run() {

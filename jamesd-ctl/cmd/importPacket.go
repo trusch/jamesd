@@ -33,6 +33,9 @@ var importPacketCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
 		file, _ := cmd.Flags().GetString("file")
+		if file == "" && len(args) > 0 {
+			file = args[0]
+		}
 		db, err := db.New(dbUrl)
 		if err != nil {
 			log.Fatal(err)

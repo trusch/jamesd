@@ -19,7 +19,7 @@ import "github.com/spf13/cobra"
 // devicesCmd represents the devices command
 var devicesCmd = &cobra.Command{
 	Use:     "devices",
-	Aliases: []string{"systems", "machines"},
+	Aliases: []string{"systems", "machines", "device", "system", "machine"},
 	Short:   "device related tasks",
 	Long:    `This allows you to inspect and interact with the connected devices packet state`,
 }

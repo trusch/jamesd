@@ -17,7 +17,7 @@ func (db *DB) AddPacket(p *packet.Packet) error {
 func (db *DB) GetPacket(name string, tags []string) (*packet.Packet, error) {
 	p := &packet.Packet{}
 	c := db.session.DB("jamesd").C("packets")
-	err := c.Find(bson.M{"controlinfo.name": name, "controlinfo.tags": bson.M{"$all": tags}}).One(p)
+	err := c.Find(bson.M{"controlinfo.name": name, "controlinfo.tags": tags}).One(p)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func (db *DB) RemovePacket(name string, tags []string) error {
 	return nil
 }
 
-func (db *DB) ListPackets(name string, tags []string) ([]*packet.Packet, error) {
+func (db *DB) ListPackets(name string, tags []string) (packet.PacketList, error) {
 	c := db.session.DB("jamesd").C("packets")
 	query := bson.M{}
 	if name != "" {
@@ -42,7 +42,7 @@ func (db *DB) ListPackets(name string, tags []string) ([]*packet.Packet, error) 
 	if len(tags) > 0 {
 		query["controlinfo.tags"] = bson.M{"$all": tags}
 	}
-	packets := []*packet.Packet{}
+	packets := packet.PacketList{}
 	err := c.Find(query).Select(bson.M{"controlinfo.name": 1, "controlinfo.tags": 1}).Sort("name", "tags").All(&packets)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (db *DB) ListPackets(name string, tags []string) ([]*packet.Packet, error) 
 	return packets, nil
 }
 
-func (db *DB) GetMatchingPackets(name string, tags []string) ([]*packet.Packet, error) {
+func (db *DB) GetMatchingPackets(name string, tags []string) (packet.PacketList, error) {
 	c := db.session.DB("jamesd").C("packets")
 	// -> give all docs where in controlinfo.tags is NOT an element which is NOT in the query-tag-set
 	query := bson.M{
@@ -65,7 +65,7 @@ func (db *DB) GetMatchingPackets(name string, tags []string) ([]*packet.Packet, 
 	if name != "" {
 		query["controlinfo.name"] = name
 	}
-	packets := []*packet.Packet{}
+	packets := packet.PacketList{}
 	err := c.Find(query).All(&packets)
 	if err != nil {
 		return nil, err
