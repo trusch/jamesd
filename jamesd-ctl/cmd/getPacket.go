@@ -17,50 +17,33 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
-	"sort"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
 )
 
-// listPacketsCmd represents the listPackets command
-var listPacketsCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List packets which matches the given name and tag list.",
-	Long: `List packets which matches the given name and tag list.
-
-	A packet is matched if it contains all tags in the taglist
-	For example the packet {name: foo, tags: [a,b,c]} matches the request {name: foo, tags: [a]}`,
-
+// getPacketCmd represents the getPacket command
+var getPacketCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Get a specific packet from the repository.",
+	Long:  `This Command gets a specific packet from the repository.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
 		name, _ := cmd.Flags().GetString("name")
+		if name == "" && len(args) > 0 {
+			name = args[0]
+		}
 		tags, _ := cmd.Flags().GetStringSlice("tags")
 		db, err := db.New(dbUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
-		listPackets(db, name, tags)
+		pack := getPacket(db, name, tags)
+		fmt.Print(string(pack.ToYaml()))
 	},
 }
 
-func listPackets(db *db.DB, packetName string, tags []string) {
-	packets, err := db.ListPackets(packetName, tags)
-	if err != nil {
-		log.Fatal(err)
-	}
-	const padding = 3
-	sort.Sort(packets)
-	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, ' ', tabwriter.Debug)
-	fmt.Fprintln(w, "Name\t Tags")
-	for _, p := range packets {
-		fmt.Fprintf(w, "%v\t %v\n", p.Name, p.Tags)
-	}
-	w.Flush()
-}
-
 func init() {
-	packetsCmd.AddCommand(listPacketsCmd)
+	packetsCmd.AddCommand(getPacketCmd)
+
 }

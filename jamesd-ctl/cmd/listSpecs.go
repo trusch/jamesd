@@ -48,7 +48,7 @@ func listSpecs(db *db.DB, name string, tags []string) {
 	}
 	const padding = 3
 	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, ' ', tabwriter.Debug)
-	fmt.Fprintln(w, "Name\t Target Tags\t Target Device")
+	fmt.Fprintln(w, "Name\t Target Tags\t Target Name")
 	for _, s := range specs {
 		fmt.Fprintf(w, "%v\t %v\t %v\n", s.Name, s.Target.Tags, s.Target.Name)
 	}

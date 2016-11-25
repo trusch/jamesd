@@ -33,7 +33,12 @@ type PacketList []*Packet
 func (a PacketList) Len() int      { return len(a) }
 func (a PacketList) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a PacketList) Less(i, j int) bool {
-	return len(a[i].ControlInfo.Tags) < len(a[j].ControlInfo.Tags)
+	if a[i].Name < a[j].Name {
+		return true
+	} else if a[i].Name == a[j].Name {
+		return len(a[i].Tags) < len(a[j].Tags)
+	}
+	return false
 }
 
 func (info *ControlInfo) ToYaml() []byte {

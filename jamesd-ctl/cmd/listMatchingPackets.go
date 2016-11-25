@@ -17,43 +17,52 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"sort"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"github.com/trusch/jamesd/db"
 )
 
-// getSatisfyingPacketsCmd represents the getSatisfyingPackets command
-var getSatisfyingPacketsCmd = &cobra.Command{
-	Use:   "satisfying",
-	Short: "List packets which satisfies given name and tags",
-	Long: `List packets which satisfies given name and tags.
+// getMatchingPacketsCmd represents the getMatchingPackets command
+var getMatchingPacketsCmd = &cobra.Command{
+	Use:   "matching",
+	Short: "List packets which matches given name and tags",
+	Long: `List packets which matches given name and tags.
 
 	A packet satifies a request if all its tags are in the request tag list.
-	For example the packet {name: foo, tags: [a]} satisfies the request {name: foo, tags: [a,b,c]}`,
+	For example the packet {name: foo, tags: [a]} matches the request {name: foo, tags: [a,b,c]}`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbUrl, _ := cmd.Flags().GetString("db")
 		name, _ := cmd.Flags().GetString("name")
+		if name == "" && len(args) > 0 {
+			name = args[0]
+		}
 		tags, _ := cmd.Flags().GetStringSlice("tags")
 		db, err := db.New(dbUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
-		listSatisfyingPackets(db, name, tags)
+		listMatchingPackets(db, name, tags)
 	},
 }
 
-func listSatisfyingPackets(db *db.DB, packetName string, tags []string) {
+func listMatchingPackets(db *db.DB, packetName string, tags []string) {
 	packets, err := db.GetMatchingPackets(packetName, tags)
 	if err != nil {
 		log.Fatal(err)
 	}
 	sort.Sort(packets)
-	for _, packet := range packets {
-		fmt.Printf("%v\t%v\n", packet.Name, packet.Tags)
+	const padding = 3
+	w := tabwriter.NewWriter(os.Stdout, 0, 8, 1, ' ', tabwriter.Debug)
+	fmt.Fprintln(w, "Name\t Tags")
+	for _, p := range packets {
+		fmt.Fprintf(w, "%v\t %v\n", p.Name, p.Tags)
 	}
+	w.Flush()
 }
 
 func init() {
-	packetsCmd.AddCommand(getSatisfyingPacketsCmd)
+	packetsCmd.AddCommand(getMatchingPacketsCmd)
 }
