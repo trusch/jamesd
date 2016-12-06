@@ -43,7 +43,7 @@ func (db *DB) ListPackets(name string, tags []string) (packet.PacketList, error)
 		query["controlinfo.tags"] = bson.M{"$all": tags}
 	}
 	packets := packet.PacketList{}
-	err := c.Find(query).Select(bson.M{"controlinfo.name": 1, "controlinfo.tags": 1}).Sort("controlinfo.name", "controlinfo.tags").All(&packets)
+	err := c.Find(query).Select(bson.M{"controlinfo.name": 1, "controlinfo.tags": 1}).All(&packets)
 	if err != nil {
 		return nil, err
 	}
