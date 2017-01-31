@@ -12,6 +12,9 @@ import (
 
 // Install installs a packet to a given root directory
 func Install(pack *packet.Packet, installRoot string) error {
+	if err := os.MkdirAll(installRoot, 0755); err != nil {
+		return err
+	}
 	if pack.ControlInfo.PreInst != "" {
 		if err := execScript(pack.ControlInfo.PreInst); err != nil {
 			return err
