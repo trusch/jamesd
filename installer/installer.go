@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/trusch/jamesd2/packet"
+	"github.com/trusch/jamesd/packet"
 )
 
 // Install installs a packet to a given root directory

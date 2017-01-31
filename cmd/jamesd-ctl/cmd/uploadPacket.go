@@ -26,8 +26,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trusch/jamesd2/cli"
-	"github.com/trusch/jamesd2/packet"
+	"github.com/trusch/jamesd/cli"
+	"github.com/trusch/jamesd/packet"
 )
 
 // uploadPacketCmd represents the uploadPacket command
@@ -39,6 +39,9 @@ var uploadPacketCmd = &cobra.Command{
 		addr := viper.GetString("address")
 		client := cli.New(addr)
 		file, _ := cmd.Flags().GetString("file")
+		if file == "" && len(args) > 0 {
+			file = args[0]
+		}
 		bs, err := ioutil.ReadFile(file)
 		if err != nil {
 			log.Fatal(err)
@@ -55,7 +58,7 @@ var uploadPacketCmd = &cobra.Command{
 
 func init() {
 	packetCmd.AddCommand(uploadPacketCmd)
-	uploadPacketCmd.Flags().StringP("file", "f", "/dev/stdin", "packet file")
+	uploadPacketCmd.Flags().StringP("file", "f", "", "packet file")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

@@ -25,7 +25,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/trusch/jamesd2/packet"
+	"github.com/trusch/jamesd/packet"
 )
 
 // buildPacketCmd represents the buildPacket command
@@ -35,6 +35,9 @@ var buildPacketCmd = &cobra.Command{
 	Long:  `This builds a packet from a prepared directory structure.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dir, _ := cmd.Flags().GetString("dir")
+		if dir == "" && len(args) > 0 {
+			dir = args[0]
+		}
 		pack, err := packet.NewFromDirectory(dir)
 		if err != nil {
 			log.Fatal(err)

@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/trusch/jamesd2/packet"
-	"github.com/trusch/jamesd2/spec"
-	"github.com/trusch/jamesd2/state"
+	"github.com/trusch/jamesd/packet"
+	"github.com/trusch/jamesd/spec"
+	"github.com/trusch/jamesd/state"
 )
 
 // Client is a jamesd client class
@@ -26,7 +26,7 @@ func New(endpoint string) *Client {
 }
 
 // GetPackets returns a list of all packet control infos
-func (cli *Client) GetPackets() ([]*packet.ControlInfo, error) {
+func (cli *Client) GetPackets() (map[string][]*packet.ControlInfo, error) {
 	req, err := http.NewRequest("GET", cli.endpoint+"/packet/", nil)
 	if err != nil {
 		return nil, err
@@ -36,11 +36,12 @@ func (cli *Client) GetPackets() ([]*packet.ControlInfo, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
-	result := []*packet.ControlInfo{}
+	result := make(map[string][]*packet.ControlInfo)
 	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(result)
+	err = decoder.Decode(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,8 @@ func (cli *Client) UploadPacket(pack *packet.Packet) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	return nil
 }
@@ -81,7 +83,8 @@ func (cli *Client) GetDesiredState(labels map[string]string) (*state.State, erro
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	result := &state.State{}
 	decoder := json.NewDecoder(resp.Body)
@@ -104,7 +107,8 @@ func (cli *Client) DeletePacket(hash string) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	return nil
 }
@@ -121,7 +125,8 @@ func (cli *Client) GetPacketInfo(hash string) (*packet.ControlInfo, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	decoder := json.NewDecoder(resp.Body)
 	info := &packet.ControlInfo{}
@@ -144,7 +149,8 @@ func (cli *Client) GetPacketData(hash string) (*packet.Packet, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	bs, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -168,11 +174,12 @@ func (cli *Client) GetSpecs() ([]*spec.Spec, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	result := []*spec.Spec{}
 	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(result)
+	err = decoder.Decode(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -196,7 +203,8 @@ func (cli *Client) UploadSpec(s *spec.Spec) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	return nil
 }
@@ -209,7 +217,7 @@ func (cli *Client) GetMergedSpec(labels map[string]string) (*spec.Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("GET", cli.endpoint+"/spec/compute", buf)
+	req, err := http.NewRequest("POST", cli.endpoint+"/spec/compute", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +226,8 @@ func (cli *Client) GetMergedSpec(labels map[string]string) (*spec.Spec, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	result := &spec.Spec{}
 	decoder := json.NewDecoder(resp.Body)
@@ -240,7 +249,8 @@ func (cli *Client) GetSpec(id string) (*spec.Spec, error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return nil, errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	result := &spec.Spec{}
 	decoder := json.NewDecoder(resp.Body)
@@ -268,7 +278,8 @@ func (cli *Client) PutSpec(s *spec.Spec) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	return nil
 }
@@ -284,7 +295,8 @@ func (cli *Client) DeleteSpec(id string) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("http error: " + strconv.Itoa(resp.StatusCode))
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return errors.New("http error: " + strconv.Itoa(resp.StatusCode) + " " + string(msg))
 	}
 	return nil
 }

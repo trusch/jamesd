@@ -33,7 +33,7 @@ var downloadPacketCmd = &cobra.Command{
 	Short: "download a packet",
 	Long:  `this downloads a specific packet from the db and saves it to file.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		pack, err := getPacketByID(cmd)
+		pack, err := getPacketByID(cmd, args)
 		if err != nil {
 			log.Fatal(err)
 		}

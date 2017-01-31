@@ -20,8 +20,13 @@
 
 package main
 
-import "github.com/trusch/jamesd2/cmd/jamesd/cmd"
+import (
+	"log"
+
+	"github.com/trusch/jamesd/cmd/jamesd/cmd"
+)
 
 func main() {
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	cmd.Execute()
 }

@@ -28,8 +28,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trusch/jamesd2/cli"
-	"github.com/trusch/jamesd2/spec"
+	"github.com/trusch/jamesd/cli"
+	"github.com/trusch/jamesd/spec"
 )
 
 // updateSpecCmd represents the updateSpec command
@@ -41,6 +41,9 @@ var updateSpecCmd = &cobra.Command{
 		addr := viper.GetString("address")
 		client := cli.New(addr)
 		file, _ := cmd.Flags().GetString("file")
+		if file == "" && len(args) > 0 {
+			file = args[0]
+		}
 		bs, err := ioutil.ReadFile(file)
 		if err != nil {
 			log.Fatal(err)

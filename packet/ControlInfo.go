@@ -13,7 +13,7 @@ import (
 type ControlInfo struct {
 	Name    string
 	Labels  map[string]string
-	Hash    string `yaml:"-"`
+	Hash    string `yaml:"hash,omitempty"`
 	Scripts `yaml:"-"`
 }
 
@@ -40,6 +40,7 @@ func (info *ControlInfo) FromYaml(data []byte) error {
 func (info *ControlInfo) ToData() ([]byte, error) {
 	controlTar := &bytes.Buffer{}
 	controlTarWriter := tar.NewWriter(controlTar)
+	info.Hash = ""
 	controlData := info.ToYaml()
 	err := addDataToTarWriter(controlTarWriter, controlData, "control")
 	if err != nil {

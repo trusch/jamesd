@@ -25,8 +25,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trusch/jamesd2/db"
-	"github.com/trusch/jamesd2/http"
+	"github.com/trusch/jamesd/db"
+	"github.com/trusch/jamesd/http"
 )
 
 // serveCmd represents the serve command

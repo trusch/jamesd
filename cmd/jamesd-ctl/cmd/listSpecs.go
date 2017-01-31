@@ -25,7 +25,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trusch/jamesd2/cli"
+	"github.com/trusch/jamesd/cli"
 )
 
 // listSpecsCmd represents the listSpecs command

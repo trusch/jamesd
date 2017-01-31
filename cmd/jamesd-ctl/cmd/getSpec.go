@@ -25,7 +25,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trusch/jamesd2/cli"
+	"github.com/trusch/jamesd/cli"
 )
 
 // getSpecCmd represents the getSpec command
@@ -36,6 +36,12 @@ var getSpecCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		addr := viper.GetString("address")
 		id, _ := cmd.Flags().GetString("id")
+		if id == "" && len(args) > 0 {
+			id = args[0]
+		}
+		if id == "" {
+			log.Fatal("specify an id")
+		}
 		client := cli.New(addr)
 		spec, err := client.GetSpec(id)
 		if err != nil {

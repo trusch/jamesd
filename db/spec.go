@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/trusch/jamesd2/spec"
+	"github.com/trusch/jamesd/spec"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -55,6 +55,9 @@ func (db *DB) GetMergedSpec(labels map[string]string) (*spec.Spec, error) {
 	_, err := collection.Find(nil).MapReduce(job, &mapReduceResult)
 	if err != nil {
 		return nil, err
+	}
+	if len(mapReduceResult) < 1 {
+		return &spec.Spec{}, nil
 	}
 	return mapReduceResult[0].Value, nil
 }

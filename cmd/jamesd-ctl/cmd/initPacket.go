@@ -24,7 +24,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/trusch/jamesd2/packet"
+	"github.com/trusch/jamesd/packet"
 )
 
 // initPacketCmd represents the initPacket command

@@ -26,8 +26,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trusch/jamesd2/cli"
-	"github.com/trusch/jamesd2/spec"
+	"github.com/trusch/jamesd/cli"
+	"github.com/trusch/jamesd/spec"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -40,6 +40,9 @@ var uploadSpecCmd = &cobra.Command{
 		addr := viper.GetString("address")
 		client := cli.New(addr)
 		file, _ := cmd.Flags().GetString("file")
+		if file == "" && len(args) > 0 {
+			file = args[0]
+		}
 		bs, err := ioutil.ReadFile(file)
 		if err != nil {
 			log.Fatal(err)
@@ -56,5 +59,5 @@ var uploadSpecCmd = &cobra.Command{
 
 func init() {
 	specCmd.AddCommand(uploadSpecCmd)
-	uploadSpecCmd.Flags().StringP("file", "f", "/dev/stdin", "spec file")
+	uploadSpecCmd.Flags().StringP("file", "f", "", "spec file")
 }

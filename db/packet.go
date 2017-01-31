@@ -2,8 +2,9 @@ package db
 
 import (
 	"errors"
+	"log"
 
-	"github.com/trusch/jamesd2/packet"
+	"github.com/trusch/jamesd/packet"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -11,12 +12,15 @@ import (
 // SavePacket saves a packet to db
 func (db *DB) SavePacket(pack *packet.Packet) error {
 	if _, err := pack.Hash(); err != nil {
+		log.Print("db error: ", err)
 		return err
 	}
 	if err := db.saveControlInfo(&pack.ControlInfo); err != nil {
+		log.Print("db error: ", err)
 		return err
 	}
 	if err := db.savePacketData(pack); err != nil {
+		log.Print("db error: ", err)
 		return err
 	}
 	return nil
@@ -31,12 +35,14 @@ func (db *DB) saveControlInfo(info *packet.ControlInfo) error {
 
 // savePacketData saves packets to db
 func (db *DB) savePacketData(pack *packet.Packet) error {
+	hash := pack.ControlInfo.Hash
 	collection := db.db.C("packet")
 	data, err := pack.ToData()
 	if err != nil {
+		log.Print("db error: ", err)
 		return err
 	}
-	_, err = collection.Upsert(bson.M{"hash": pack.ControlInfo.Hash}, bson.M{"hash": pack.ControlInfo.Hash, "data": data})
+	_, err = collection.Upsert(bson.M{"hash": hash}, bson.M{"hash": hash, "data": data})
 	return err
 }
 
@@ -49,14 +55,17 @@ func (db *DB) GetPacket(hash string) (*packet.Packet, error) {
 	}{}
 	err := collection.Find(bson.M{"hash": hash}).One(doc)
 	if err != nil {
+		log.Print("db error: ", err)
 		return nil, err
 	}
 	pack, err := packet.NewFromData(doc.Data)
 	if err != nil {
+		log.Print("db error: ", err)
 		return nil, err
 	}
 	_, err = pack.Hash()
 	if err != nil {
+		log.Print("db error: ", err)
 		return nil, err
 	}
 	if hash != pack.ControlInfo.Hash {
@@ -68,9 +77,11 @@ func (db *DB) GetPacket(hash string) (*packet.Packet, error) {
 // DeletePacket deletes a packet
 func (db *DB) DeletePacket(hash string) error {
 	if err := db.db.C("packet").Remove(bson.M{"hash": hash}); err != nil {
+		log.Print("db error: ", err)
 		return err
 	}
 	if err := db.db.C("controlinfo").Remove(bson.M{"hash": hash}); err != nil {
+		log.Print("db error: ", err)
 		return err
 	}
 	return nil
@@ -108,6 +119,7 @@ func (db *DB) GetBestInfo(name string, labels map[string]string) (*packet.Contro
 	mapReduceResult := []struct{ Value *packet.ControlInfo }{}
 	_, err := collection.Find(bson.M{"name": name}).MapReduce(job, &mapReduceResult)
 	if err != nil {
+		log.Print("db error: ", err)
 		return nil, err
 	}
 	if len(mapReduceResult) == 0 {
@@ -121,6 +133,7 @@ func (db *DB) GetInfos(name string) ([]*packet.ControlInfo, error) {
 	collection := db.db.C("controlinfo")
 	infos := make([]*packet.ControlInfo, 0, 8)
 	if err := collection.Find(bson.M{"name": name}).All(&infos); err != nil {
+		log.Print("db error: ", err)
 		return nil, err
 	}
 	return infos, nil
@@ -131,6 +144,7 @@ func (db *DB) GetPacketNames() ([]string, error) {
 	collection := db.db.C("controlinfo")
 	names := make([]string, 0, 32)
 	if err := collection.Find(nil).Distinct("name", &names); err != nil {
+		log.Print("db error: ", err)
 		return nil, err
 	}
 	return names, nil

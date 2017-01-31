@@ -23,9 +23,10 @@ package cmd
 import (
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/trusch/jamesd2/packet"
+	"github.com/trusch/jamesd/packet"
 )
 
 // infoPacketCmd represents the infoPacket command
@@ -35,9 +36,14 @@ var infoPacketCmd = &cobra.Command{
 	Long:  `This returns the metadata for a given packet hash from database.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		file, _ := cmd.Flags().GetString("file")
+		if file == "" {
+			if len(args) > 0 && strings.HasSuffix(args[0], ".jpk") {
+				file = args[0]
+			}
+		}
 		var pack *packet.Packet
 		if file == "" {
-			p, err := getPacketByID(cmd)
+			p, err := getPacketByID(cmd, args)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -53,6 +59,7 @@ var infoPacketCmd = &cobra.Command{
 			}
 			pack = p
 		}
+		pack.Hash()
 		dumpAsYaml(pack.ControlInfo)
 	},
 }

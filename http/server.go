@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/trusch/jamesd2/db"
+	"github.com/trusch/jamesd/db"
 )
 
 type server struct {

@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/trusch/jamesd2/packet"
-	"github.com/trusch/jamesd2/spec"
+	"github.com/trusch/jamesd/packet"
+	"github.com/trusch/jamesd/spec"
 )
 
 func TestPacket(t *testing.T) {
@@ -47,6 +47,8 @@ func TestPacket(t *testing.T) {
 	assert.NoError(t, err)
 	restoredPacket, err := db.GetPacket(info.Hash)
 	assert.NoError(t, err)
+	originalPacket.Hash()
+	restoredPacket.Hash()
 	assert.Equal(t, originalPacket, restoredPacket)
 	err = db.DeletePacket(restoredPacket.ControlInfo.Hash)
 	assert.NoError(t, err)

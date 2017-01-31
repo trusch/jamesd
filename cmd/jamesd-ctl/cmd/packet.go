@@ -25,8 +25,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/trusch/jamesd2/cli"
-	"github.com/trusch/jamesd2/packet"
+	"github.com/trusch/jamesd/cli"
+	"github.com/trusch/jamesd/packet"
 )
 
 // packetCmd represents the packet command
@@ -51,11 +51,18 @@ func init() {
 
 }
 
-func getPacketByID(cmd *cobra.Command) (*packet.Packet, error) {
+func getPacketByID(cmd *cobra.Command, args []string) (*packet.Packet, error) {
 	addr := viper.GetString("address")
 	id, _ := cmd.Flags().GetString("id")
-	if addr == "" || id == "" {
-		log.Fatal("specify at least address and id!")
+	if addr == "" {
+		log.Fatal("specify address!")
+	}
+	if id == "" {
+		if len(args) > 0 {
+			id = args[0]
+		} else {
+			log.Fatal("specify an id")
+		}
 	}
 	client := cli.New(addr)
 	return client.GetPacketData(id)

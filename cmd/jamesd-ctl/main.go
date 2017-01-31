@@ -20,7 +20,7 @@
 
 package main
 
-import "github.com/trusch/jamesd2/cmd/jamesd-ctl/cmd"
+import "github.com/trusch/jamesd/cmd/jamesd-ctl/cmd"
 
 func main() {
 	cmd.Execute()
