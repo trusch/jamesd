@@ -21,31 +21,55 @@
 package cmd
 
 import (
+	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/trusch/jamesd/cli"
+	"github.com/trusch/jamesd/installer"
+	"github.com/trusch/jamesd/packet"
 )
 
-// computeSpecCmd represents the computeSpec command
-var computeSpecCmd = &cobra.Command{
-	Use:   "compute",
-	Short: "compute the resulting spec for a given label-set",
-	Long:  `This computes the resulting spec for a given label-set`,
+// installPacketCmd represents the installPacket command
+var installPacketCmd = &cobra.Command{
+	Use:   "install",
+	Short: "install a packet",
+	Long:  `This installs a packet on your system.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		addr := viper.GetString("address")
-		labels := getLabels(cmd)
-		client := cli.New(addr)
-		s, err := client.GetMergedSpec(labels)
-		if err != nil {
+		file, _ := cmd.Flags().GetString("file")
+		if file == "" {
+			if len(args) > 0 && strings.HasSuffix(args[0], ".jpk") {
+				file = args[0]
+			}
+		}
+		var pack *packet.Packet
+		if file == "" {
+			p, err := getPacketByID(cmd, args)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pack = p
+		} else {
+			bs, err := ioutil.ReadFile(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			p, err := packet.NewFromData(bs)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pack = p
+		}
+		pack.Hash()
+		root, _ := cmd.Flags().GetString("root")
+		if err := installer.Install(pack, root); err != nil {
 			log.Fatal(err)
 		}
-		dumpAsYaml(s)
 	},
 }
 
 func init() {
-	specCmd.AddCommand(computeSpecCmd)
-	computeSpecCmd.Flags().StringSliceP("labels", "l", []string{}, "comma separated list of labels: foo=bar,baz=quy...")
+	packetCmd.AddCommand(installPacketCmd)
+	installPacketCmd.Flags().StringP("file", "f", "", "packet filename")
+	installPacketCmd.Flags().StringP("root", "r", "/", "install root")
 }

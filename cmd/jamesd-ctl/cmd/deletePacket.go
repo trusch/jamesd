@@ -49,14 +49,4 @@ var deletePacketCmd = &cobra.Command{
 func init() {
 	packetCmd.AddCommand(deletePacketCmd)
 	deletePacketCmd.Flags().String("id", "", "id of the packet")
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deletePacketCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// deletePacketCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }

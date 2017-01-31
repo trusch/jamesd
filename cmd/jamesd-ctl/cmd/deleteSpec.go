@@ -49,14 +49,4 @@ var deleteSpecCmd = &cobra.Command{
 func init() {
 	specCmd.AddCommand(deleteSpecCmd)
 	deleteSpecCmd.Flags().String("id", "", "id of the spec")
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// deleteSpecCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// deleteSpecCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }
