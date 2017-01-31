@@ -1,81 +1,74 @@
 package db
 
 import (
-	"errors"
-
-	"github.com/trusch/jamesd/spec"
+	"github.com/trusch/jamesd2/spec"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (db *DB) UpsertSpec(specification *spec.Spec) error {
-	c := db.session.DB("jamesd").C("specs")
-	_, err := c.Upsert(bson.M{"name": specification.Name}, specification)
-	if err != nil {
-		return err
-	}
-	return nil
+// SaveSpec saves a spec to db
+func (db *DB) SaveSpec(spec *spec.Spec) error {
+	collection := db.db.C("spec")
+	_, err := collection.Upsert(bson.M{"id": spec.ID}, spec)
+	return err
 }
 
-func (db *DB) GetSpec(name string) (*spec.Spec, error) {
-	p := &spec.Spec{}
-	c := db.session.DB("jamesd").C("specs")
-	err := c.Find(bson.M{"name": name}).One(p)
-	if err != nil {
-		return nil, err
-	}
-	return p, nil
+// GetSpec retrieves a spec from db
+func (db *DB) GetSpec(id string) (*spec.Spec, error) {
+	collection := db.db.C("spec")
+	spec := &spec.Spec{}
+	err := collection.Find(bson.M{"id": id}).One(&spec)
+	return spec, err
 }
 
-func (db *DB) RemoveSpec(name string) error {
-	c := db.session.DB("jamesd").C("specs")
-	return c.Remove(bson.M{"name": name})
-}
-
-func (db *DB) GetSpecs(targetName string, tags []string) ([]*spec.Spec, error) {
-	c := db.session.DB("jamesd").C("specs")
-	query := bson.M{}
-	if targetName != "" {
-		query["target.name"] = targetName
-	}
-	if len(tags) > 0 {
-		query["target.tags"] = bson.M{"$all": tags}
-	}
-	specs := make([]*spec.Spec, 0)
-	err := c.Find(query).Sort("target.name", "target.tags").All(&specs)
-	if err != nil {
-		return nil, err
-	}
-	return specs, nil
-}
-
-func (db *DB) GetSpecForTarget(name string, tags []string) (*spec.Spec, error) {
-	c := db.session.DB("jamesd").C("specs")
-	query := bson.M{
-		"$or": []bson.M{
-			bson.M{
-				"target.tags": bson.M{
-					"$not": bson.M{
-						"$elemMatch": bson.M{
-							"$nin": tags,
-						},
-					},
-				},
-			},
+// GetMergedSpec returns a merged specs of all matching specs in the db
+func (db *DB) GetMergedSpec(labels map[string]string) (*spec.Spec, error) {
+	collection := db.db.C("spec")
+	job := &mgo.MapReduce{
+		Map: `function(){
+      for(var key in this.target) {
+        var reqVal = req[key];
+        if(reqVal !== this.target[key]){
+          return;
+        }
+      }
+      emit('', this)
+    }`,
+		Reduce: `function(key, specs){
+      var res = {target: {}, apps: []};
+      for(var idx in specs){
+        var spec = specs[idx];
+        for(var key in spec.target) {
+          res.target[key] = spec.target[key];
+        }
+        for(var key in spec.apps) {
+          res.apps.push(spec.apps[key]);
+        }
+      }
+      return res;
+    }`,
+		Scope: map[string]interface{}{
+			"req": labels,
 		},
 	}
-	if name != "" {
-		query["$or"] = append(query["$or"].([]bson.M), bson.M{"target.name": name})
-	}
-	specs := []*spec.Spec{}
-	err := c.Find(query).All(&specs)
+	mapReduceResult := []struct{ Value *spec.Spec }{}
+	_, err := collection.Find(nil).MapReduce(job, &mapReduceResult)
 	if err != nil {
 		return nil, err
 	}
-	if len(specs) == 0 {
-		return &spec.Spec{}, errors.New("no matching spec found")
-	}
-	for i := 1; i < len(specs); i++ {
-		specs[0].Merge(specs[i])
-	}
-	return specs[0], nil
+	return mapReduceResult[0].Value, nil
+}
+
+// DeleteSpec removes a spec from db
+func (db *DB) DeleteSpec(id string) error {
+	collection := db.db.C("spec")
+	return collection.Remove(bson.M{"id": id})
+}
+
+// GetSpecs returns all specs
+func (db *DB) GetSpecs() ([]*spec.Spec, error) {
+	collection := db.db.C("spec")
+	specs := []*spec.Spec{}
+	err := collection.Find(nil).All(&specs)
+	return specs, err
 }

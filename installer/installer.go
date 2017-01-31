@@ -7,9 +7,10 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/trusch/jamesd/packet"
+	"github.com/trusch/jamesd2/packet"
 )
 
+// Install installs a packet to a given root directory
 func Install(pack *packet.Packet, installRoot string) error {
 	if pack.ControlInfo.PreInst != "" {
 		if err := execScript(pack.ControlInfo.PreInst); err != nil {
@@ -27,6 +28,7 @@ func Install(pack *packet.Packet, installRoot string) error {
 	return nil
 }
 
+// Uninstall uninstalls a packet from a given root directory
 func Uninstall(pack *packet.Packet, installRoot string) error {
 	if pack.ControlInfo.PreRm != "" {
 		if err := execScript(pack.ControlInfo.PreRm); err != nil {
