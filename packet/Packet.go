@@ -111,6 +111,24 @@ func NewFromData(data []byte) (*Packet, error) {
 	return pack, pack.FromData(data)
 }
 
+// NewFromFile returns a new packet parsed from file
+func NewFromFile(file string) (*Packet, error) {
+	bs, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	pack := &Packet{}
+	err = pack.FromData(bs)
+	if err != nil {
+		return nil, err
+	}
+	_, err = pack.Hash()
+	if err != nil {
+		return nil, err
+	}
+	return pack, nil
+}
+
 // NewFromDirectory parses a directory producing a packet
 func NewFromDirectory(dir string) (*Packet, error) {
 	data, err := tatar.NewFromDirectory(filepath.Join(dir, "data"))
