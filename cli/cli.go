@@ -18,11 +18,17 @@ import (
 type Client struct {
 	endpoint string
 	client   *http.Client
+	token    string
 }
 
 // New returns a new client
 func New(endpoint string) *Client {
-	return &Client{endpoint, &http.Client{}}
+	return &Client{endpoint, &http.Client{}, ""}
+}
+
+// SetToken sets the auth token
+func (cli *Client) SetToken(token string) {
+	cli.token = token
 }
 
 // GetPackets returns a list of all packet control infos
@@ -31,6 +37,7 @@ func (cli *Client) GetPackets() (map[string][]*packet.ControlInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -58,6 +65,7 @@ func (cli *Client) UploadPacket(pack *packet.Packet) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return err
@@ -78,6 +86,7 @@ func (cli *Client) GetDesiredState(labels map[string]string) (*state.State, erro
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -102,6 +111,7 @@ func (cli *Client) DeletePacket(hash string) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return err
@@ -120,6 +130,7 @@ func (cli *Client) GetPacketInfo(hash string) (*packet.ControlInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -144,6 +155,7 @@ func (cli *Client) GetPacketData(hash string) (*packet.Packet, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -169,6 +181,7 @@ func (cli *Client) GetSpecs() ([]*spec.Spec, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -198,6 +211,7 @@ func (cli *Client) UploadSpec(s *spec.Spec) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return err
@@ -221,6 +235,7 @@ func (cli *Client) GetMergedSpec(labels map[string]string) (*spec.Spec, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -244,6 +259,7 @@ func (cli *Client) GetSpec(id string) (*spec.Spec, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -273,6 +289,7 @@ func (cli *Client) PutSpec(s *spec.Spec) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return err
@@ -290,6 +307,7 @@ func (cli *Client) DeleteSpec(id string) error {
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Authorization", "Bearer "+cli.token)
 	resp, err := cli.client.Do(req)
 	if err != nil {
 		return err
