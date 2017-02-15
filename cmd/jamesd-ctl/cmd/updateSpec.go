@@ -60,5 +60,5 @@ var updateSpecCmd = &cobra.Command{
 
 func init() {
 	specCmd.AddCommand(updateSpecCmd)
-	updateSpecCmd.Flags().StringP("file", "f", "/dev/stdin", "spec file")
+	updateSpecCmd.Flags().StringP("file", "f", "", "spec file")
 }
