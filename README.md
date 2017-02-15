@@ -1,7 +1,7 @@
 JamesD
 ======
 
-A centralistic packet management system for heterogenous device fleets
+A universal packetmanager for heterogeneous fleets of machines with server side version control.
 
 JamesD is a centralistic packet management system for heterogenous device fleets.
 You can use it to manage multiple versions for each packet you maintain, and to automatically distribute updates.
