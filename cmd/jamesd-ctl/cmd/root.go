@@ -52,6 +52,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.jamesd-ctl.yaml)")
 	RootCmd.PersistentFlags().StringP("address", "a", "http://localhost", "jamesd address")
+	RootCmd.PersistentFlags().StringP("token", "t", "", "jamesd access token")
 	viper.BindPFlags(RootCmd.PersistentFlags())
 }
 

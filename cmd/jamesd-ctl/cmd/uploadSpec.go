@@ -39,6 +39,10 @@ var uploadSpecCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		addr := viper.GetString("address")
 		client := cli.New(addr)
+		token := viper.GetString("token")
+		if token != "" {
+			client.SetToken(token)
+		}
 		file, _ := cmd.Flags().GetString("file")
 		if file == "" && len(args) > 0 {
 			file = args[0]

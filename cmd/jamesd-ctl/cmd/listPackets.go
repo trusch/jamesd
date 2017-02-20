@@ -36,6 +36,10 @@ var listPacketsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		addr := viper.GetString("address")
 		client := cli.New(addr)
+		token := viper.GetString("token")
+		if token != "" {
+			client.SetToken(token)
+		}
 		if packets, err := client.GetPackets(); err != nil {
 			log.Fatal(err)
 		} else {

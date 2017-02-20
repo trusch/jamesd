@@ -54,5 +54,9 @@ func getPacketByID(cmd *cobra.Command, args []string) (*packet.Packet, error) {
 		}
 	}
 	client := cli.New(addr)
+	token := viper.GetString("token")
+	if token != "" {
+		client.SetToken(token)
+	}
 	return client.GetPacketData(id)
 }

@@ -37,6 +37,10 @@ var computePacketsCmd = &cobra.Command{
 		addr := viper.GetString("address")
 		labels := getLabels(cmd)
 		client := cli.New(addr)
+		token := viper.GetString("token")
+		if token != "" {
+			client.SetToken(token)
+		}
 		state, err := client.GetDesiredState(labels)
 		if err != nil {
 			log.Fatal(err)

@@ -40,6 +40,10 @@ var deleteSpecCmd = &cobra.Command{
 			id = args[0]
 		}
 		client := cli.New(addr)
+		token := viper.GetString("token")
+		if token != "" {
+			client.SetToken(token)
+		}
 		if err := client.DeleteSpec(id); err != nil {
 			log.Fatal(err)
 		}

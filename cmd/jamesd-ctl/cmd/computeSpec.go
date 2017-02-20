@@ -37,6 +37,10 @@ var computeSpecCmd = &cobra.Command{
 		addr := viper.GetString("address")
 		labels := getLabels(cmd)
 		client := cli.New(addr)
+		token := viper.GetString("token")
+		if token != "" {
+			client.SetToken(token)
+		}
 		s, err := client.GetMergedSpec(labels)
 		if err != nil {
 			log.Fatal(err)

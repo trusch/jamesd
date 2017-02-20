@@ -43,6 +43,10 @@ var getSpecCmd = &cobra.Command{
 			log.Fatal("specify an id")
 		}
 		client := cli.New(addr)
+		token := viper.GetString("token")
+		if token != "" {
+			client.SetToken(token)
+		}
 		spec, err := client.GetSpec(id)
 		if err != nil {
 			log.Fatal(err)
